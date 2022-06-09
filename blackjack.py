@@ -193,7 +193,7 @@ def take_bets():
     while bet_confirmation == False:
         bet = input('Please enter your bet: ')
         if  bet.isdigit() == False:
-            print('Invalid input, please enter a number.')
+            print('Invalid input, please enter a whole number.')
             time.sleep(1)
         elif bet.isdigit() == True and int(bet) > player_chips:
             print('Insufficient funds.')
@@ -251,7 +251,7 @@ def keep_playing():
                 break
             elif continue_game == str.casefold('No') or continue_game == str.casefold('N'):
                 play_again = False
-                print('Thanks for playing!')
+                print('Thanks for playing! Your end total is: $' + str(player_chips) + '!')
                 break
             else:
                 print('Invalid update. Please input yes or no.')
