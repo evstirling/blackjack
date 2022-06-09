@@ -64,7 +64,7 @@ def shuffle(): # Shuffle the deck, refresh the variables
 
 def hit():  # Hit me babey
     # Draw Card
-    number = random.randint(0, len(live_deck))
+    number = random.randint(0, (len(live_deck)-1))
     drawn_card = live_deck[number]
     live_deck.pop(number)
     print('You received the ' + drawn_card[0] + ' of ' + drawn_card[1] + '.')
@@ -101,6 +101,7 @@ def player_turn():
         if player_score > 21:
             player_bust = True
             print("You're busted!")
+            time.sleep(0.8)
             break
         hit_or_stick = input('Hit or Stick? ') 
         if player_score <= 21 and hit_or_stick == str.casefold('Hit'):
@@ -115,7 +116,7 @@ def dealer_hit():
     global live_deck
 
     # Draw Card
-    number = random.randint(0, len(live_deck))
+    number = random.randint(0, (len(live_deck)-1))
     drawn_card = live_deck[number]
     live_deck.pop(number)
     print('The dealer drew ' + drawn_card[0] + ' of ' + drawn_card[1] + '.')
@@ -199,8 +200,6 @@ def take_bets():
             bet = 0
         elif bet.isdigit() == True:
             print('Your bet is $' + str(bet) + '. Good luck!')
-            bet = int(bet)
-            player_chips -= bet
             time.sleep(1)
             break
 
@@ -212,14 +211,14 @@ def pay_out():
 
     # Win/Draw/Lose
     if player_win == True:
-        print('Congrats! You win $' + str(bet*2) + '!')
-        bet += int(bet) + int(bet)
-        player_chips += bet
+        print('Congrats! You win $' + str(bet) + '!')
+        player_chips += int(bet)
     elif draw == True:
-        player_chips += bet
         print('Bets returned.')
     else:
         print('Better luck next time!')
+        player_chips -= int(bet)
+
     time.sleep(2)
 
 def keep_playing():
@@ -246,7 +245,7 @@ def keep_playing():
     else:
         play_again_confirmation = False
         while play_again_confirmation == False:
-            continue_game = input("Play again? [Yes/No] ")
+            continue_game = input("Another hand? [Yes/No] ")
             if continue_game == str.casefold('Yes') or continue_game == str.casefold('Y'):
                 play_again = True
                 break
