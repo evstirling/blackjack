@@ -27,9 +27,28 @@ dealer_bust = False
 ace_selector = 0
 hit_or_stick = 'Hit'
 cards_drawn = 0
+bet = 0
+player_chips = 100
+player_win = False
+draw = False
+play_again = True
 
 # Functions
 def shuffle(): # Shuffle the deck, refresh the variables
+    global live_deck
+    global player_score
+    global player_bust
+    global dealer_score
+    global dealer_bust
+    global ace_selector
+    global hit_or_stick
+    global cards_drawn
+    global bet
+    global player_win
+    global draw
+
+    print('Shuffling the deck...')
+    time.sleep(2)
     live_deck = cards
     player_score = 0
     player_bust = False
@@ -38,6 +57,10 @@ def shuffle(): # Shuffle the deck, refresh the variables
     ace_selector = 0
     hit_or_stick = 'Hit'
     cards_drawn = 0
+    bet = 0
+    player_win = False
+    draw = False
+    
 
 def hit():  # Hit me babey
     # Draw Card
@@ -45,6 +68,7 @@ def hit():  # Hit me babey
     drawn_card = live_deck[number]
     live_deck.pop(number)
     print('You received the ' + drawn_card[0] + ' of ' + drawn_card[1] + '.')
+    time.sleep(1)
 
     # Ace Selection + Point Tally
     global player_score
@@ -64,7 +88,7 @@ def hit():  # Hit me babey
     else:
         player_score += int(drawn_card[2])
     cards_drawn += 1
-    print('You have ' + str(player_score) + ' points with ' + str(cards_drawn) + ' cards.')
+    if cards_drawn > 1: print('You have ' + str(player_score) + ' points with ' + str(cards_drawn) + ' cards.')
 
 def player_turn():
     global player_score
@@ -95,6 +119,7 @@ def dealer_hit():
     drawn_card = live_deck[number]
     live_deck.pop(number)
     print('The dealer drew ' + drawn_card[0] + ' of ' + drawn_card[1] + '.')
+    time.sleep(1)
 
     # Point Tally (Dealer treats all Aces as 1)
     dealer_score += int(drawn_card[2])
@@ -122,32 +147,95 @@ def compare_scores():
     global dealer_score
     global player_bust
     global dealer_bust
+    global cards_drawn
+    global player_win
+    global draw
 
-    if player_score > dealer_score and player_bust == False:
+    if cards_drawn >= 5 and player_bust == False:
+        print('You drew 5 cards. You win!') 
+        player_win = True
+    elif player_score > dealer_score and player_bust == False:
         print('You win!')
+        player_win = True
     elif player_score < dealer_score and dealer_bust == True:
         print('You win!')
+        player_win = True
     elif player_score < dealer_score and dealer_bust == False:
         print('The house wins.')
     elif player_score == dealer_score and player_bust == False:
         print('Draw.')
+        draw = True
 
-# ACTUAL GAME SEQUENCE
+def core_game_loop():
 
-# Shuffle Deck
-shuffle()
+    # Opening Hand
+    hit()
+    hit()
 
-# Opening Hand
-hit()
-hit()
+    player_turn()
 
-player_turn()
+    # If player busts, game ends
+    if player_bust == False:
+        dealer_turn()
 
-# If player busts, game ends
-if player_bust == False:
-    dealer_turn()
-
-if cards_drawn >= 5:
-    print('You win!')
-else:
     compare_scores()
+
+def take_bets():
+    global bet
+    global player_chips
+
+    print('You have $' + str(player_chips) + '.')
+    time.sleep(1.2)
+    while bet < 1:
+        bet = int(input('Please enter your bet: '))
+        if type(bet) == str:
+            print('Invalid input, please enter a number.')
+            bet = 0
+            time.sleep(1.2)
+        elif bet > player_chips:
+            print('Insufficient funds.')
+            bet = 0
+        else:
+            print('Your bet is $' + str(bet) + '. Good luck!')
+            player_chips -= bet
+
+def pay_out():
+    global bet
+    global player_chips
+    global player_win
+    global draw
+
+    if player_win == True:
+        bet += bet * 2
+        player_chips += bet
+        print('Congrats! You win $' + str(bet) + '!')
+    elif draw == True:
+        player_chips += bet
+        print('Bets returned.')
+    else:
+        print('Better luck next time!')
+    time.sleep(2)
+
+def keep_playing():
+    global play_again
+    play_again_confirmation = False
+
+    while play_again_confirmation == False:
+        continue_game = input("Play again? [Yes/No] ")
+        if continue_game == str.casefold('Yes') or continue_game == str.casefold('Y'):
+            play_again = True
+            break
+        elif continue_game == str.casefold('No') or continue_game == str.casefold('N'):
+            play_again = False
+            print('Thanks for playing!')
+            break
+        else:
+            print('Invalid update. Please input yes or no.')
+
+while play_again == True:
+    shuffle()
+    take_bets()
+    core_game_loop()
+    pay_out()
+    keep_playing()
+        
