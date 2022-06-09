@@ -27,7 +27,7 @@ dealer_bust = False
 ace_selector = 0
 hit_or_stick = 'Hit'
 cards_drawn = 0
-bet = 0
+bet = ''
 player_chips = 100
 player_win = False
 draw = False
@@ -57,7 +57,7 @@ def shuffle(): # Shuffle the deck, refresh the variables
     ace_selector = 0
     hit_or_stick = 'Hit'
     cards_drawn = 0
-    bet = 0
+    bet = ''
     player_win = False
     draw = False
     
@@ -130,6 +130,8 @@ def dealer_turn():
     global dealer_bust
     global live_deck
 
+    print("Dealer's turn.")
+    time.sleep(1)
     dealer_hit()
     for cards in live_deck:
         time.sleep(0.7)
@@ -186,18 +188,21 @@ def take_bets():
 
     print('You have $' + str(player_chips) + '.')
     time.sleep(1.2)
-    while bet < 1:
-        bet = int(input('Please enter your bet: '))
-        if type(bet) == str:
+    bet_confirmation = False
+    while bet_confirmation == False:
+        bet = input('Please enter your bet: ')
+        if  bet.isdigit() == False:
             print('Invalid input, please enter a number.')
-            bet = 0
-            time.sleep(1.2)
-        elif bet > player_chips:
+            time.sleep(1)
+        elif bet.isdigit() == True and int(bet) > player_chips:
             print('Insufficient funds.')
             bet = 0
-        else:
+        elif bet.isdigit() == True:
             print('Your bet is $' + str(bet) + '. Good luck!')
+            bet = int(bet)
             player_chips -= bet
+            time.sleep(1)
+            break
 
 def pay_out():
     global bet
@@ -205,10 +210,11 @@ def pay_out():
     global player_win
     global draw
 
+    # Win/Draw/Lose
     if player_win == True:
-        bet += bet * 2
+        print('Congrats! You win $' + str(bet*2) + '!')
+        bet += int(bet) + int(bet)
         player_chips += bet
-        print('Congrats! You win $' + str(bet) + '!')
     elif draw == True:
         player_chips += bet
         print('Bets returned.')
@@ -218,19 +224,38 @@ def pay_out():
 
 def keep_playing():
     global play_again
-    play_again_confirmation = False
+    global player_chips
 
-    while play_again_confirmation == False:
-        continue_game = input("Play again? [Yes/No] ")
-        if continue_game == str.casefold('Yes') or continue_game == str.casefold('Y'):
-            play_again = True
-            break
-        elif continue_game == str.casefold('No') or continue_game == str.casefold('N'):
-            play_again = False
-            print('Thanks for playing!')
-            break
-        else:
-            print('Invalid update. Please input yes or no.')
+    # Buy back in if out of funds
+    if player_chips == 0:
+        buy_in_confirmation = False
+        while buy_in_confirmation == False:
+            buy_in = input("You're out of funds. Buy back in? [Yes/No] ") 
+            if buy_in == str.casefold('Yes') or buy_in == str.casefold('Y'):
+                player_chips += 100
+                play_again = True
+                break
+            elif buy_in == str.casefold('No') or buy_in == str.casefold('N'):
+                play_again = False
+                print('Thanks for playing!')
+                break
+            else:
+                print('Invalid update. Please input yes or no.')
+   
+    # Continue?
+    else:
+        play_again_confirmation = False
+        while play_again_confirmation == False:
+            continue_game = input("Play again? [Yes/No] ")
+            if continue_game == str.casefold('Yes') or continue_game == str.casefold('Y'):
+                play_again = True
+                break
+            elif continue_game == str.casefold('No') or continue_game == str.casefold('N'):
+                play_again = False
+                print('Thanks for playing!')
+                break
+            else:
+                print('Invalid update. Please input yes or no.')
 
 while play_again == True:
     shuffle()
