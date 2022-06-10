@@ -47,8 +47,7 @@ def shuffle(): # Shuffle the deck, refresh the variables
     global player_win
     global draw
 
-    print('Shuffling the deck...')
-    time.sleep(2)
+    print('Shuffling the deck.')
     live_deck = cards
     player_score = 0
     player_bust = False
@@ -60,6 +59,9 @@ def shuffle(): # Shuffle the deck, refresh the variables
     bet = ''
     player_win = False
     draw = False
+    for i in range(3):
+        time.sleep(0.7)
+        print('.')
     
 
 def hit():  # Hit me babey
@@ -168,13 +170,14 @@ def compare_scores():
     elif player_score == dealer_score and player_bust == False:
         print('Draw.')
         draw = True
+    pay_out()
 
 def core_game_loop():
 
     # Opening Hand
     hit()
     hit()
-
+    
     player_turn()
 
     # If player busts, game ends
@@ -191,7 +194,7 @@ def take_bets():
     time.sleep(1.2)
     bet_confirmation = False
     while bet_confirmation == False:
-        bet = input('Please enter your bet: ')
+        bet = input('Place your bets: ')
         if  bet.isdigit() == False:
             print('Invalid input, please enter a whole number.')
             time.sleep(1)
@@ -245,21 +248,35 @@ def keep_playing():
     else:
         play_again_confirmation = False
         while play_again_confirmation == False:
-            continue_game = input("Another hand? [Yes/No] ")
+            continue_game = input("Play one more hand? [Yes/No] ")
             if continue_game == str.casefold('Yes') or continue_game == str.casefold('Y'):
                 play_again = True
                 break
             elif continue_game == str.casefold('No') or continue_game == str.casefold('N'):
                 play_again = False
-                print('Thanks for playing! Your end total is: $' + str(player_chips) + '!')
+                time.sleep(1)
+                print('Thanks for playing!')
+                time.sleep(0.7)
+                print('Your end total is $' + str(player_chips) + '!')
+                time.sleep(0.7)
                 break
             else:
                 print('Invalid update. Please input yes or no.')
 
+def intro():
+    print('Welcome to Blackjack v 1.0.0. This is a project I aim to grow as I learn new skills.')
+    time.sleep(1)
+    print('Thanks for checking it out!')
+    time.sleep(2)
+    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+    print('     Win back what you bet, bets returned in a draw. Dealer sticks on 17 and treats all Aces as 1.')
+    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ')
+    time.sleep(1)
+
+# Game sequence
+intro()
 while play_again == True:
     shuffle()
     take_bets()
     core_game_loop()
-    pay_out()
     keep_playing()
-        
