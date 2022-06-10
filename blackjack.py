@@ -1,6 +1,10 @@
 import random
 import time
 
+# Version Number
+
+version = '1.0.1'
+
 # Cardset
 cards = [
     ['Ace', 'Hearts', 1, 11], ['Ace', 'Spades', 1, 11], ['Ace', 'Diamonds', 1, 11], [ 'Ace', 'Clubs', 1, 11],
@@ -32,6 +36,7 @@ player_chips = 100
 player_win = False
 draw = False
 play_again = True
+hands_played = 0
 
 # Functions
 def shuffle(): # Shuffle the deck, refresh the variables
@@ -46,6 +51,7 @@ def shuffle(): # Shuffle the deck, refresh the variables
     global bet
     global player_win
     global draw
+    global hands_played
 
     print('Shuffling the deck.')
     live_deck = cards
@@ -59,6 +65,7 @@ def shuffle(): # Shuffle the deck, refresh the variables
     bet = ''
     player_win = False
     draw = False
+    hands_played += 1
     for i in range(3):
         time.sleep(0.7)
         print('.')
@@ -92,7 +99,7 @@ def hit():  # Hit me babey
     cards_drawn += 1
     if cards_drawn > 1: print('You have ' + str(player_score) + ' points with ' + str(cards_drawn) + ' cards.')
 
-def player_turn():
+def player_turn(): # Player's turn sequence
     global player_score
     global player_bust
     global hit_or_stick
@@ -113,7 +120,7 @@ def player_turn():
         else:
             print("Invalid input. Please type either Hit or Stick")
 
-def dealer_hit():
+def dealer_hit(): # Dealer's draw phase
     global dealer_score
     global live_deck
 
@@ -126,9 +133,12 @@ def dealer_hit():
 
     # Point Tally (Dealer treats all Aces as 1)
     dealer_score += int(drawn_card[2])
-    print('The dealer has ' + str(dealer_score) + ' points.')
+    if dealer_score == 1:
+        print('The dealer has ' + str(dealer_score) + ' point.')
+    else:
+        print('The dealer has ' + str(dealer_score) + ' points.')
 
-def dealer_turn():
+def dealer_turn(): # Dealer's turn sequence
     global dealer_score
     global dealer_bust
     global live_deck
@@ -147,7 +157,7 @@ def dealer_turn():
         elif dealer_score < 17:
             dealer_hit()
 
-def compare_scores():
+def compare_scores(): # Score comparison and pay_out call
     global player_score
     global dealer_score
     global player_bust
@@ -172,7 +182,7 @@ def compare_scores():
         draw = True
     pay_out()
 
-def core_game_loop():
+def core_game_loop(): # Main sequence of game functions
 
     # Opening Hand
     hit()
@@ -186,7 +196,7 @@ def core_game_loop():
 
     compare_scores()
 
-def take_bets():
+def take_bets(): # Receive and process bet input from user
     global bet
     global player_chips
 
@@ -206,7 +216,7 @@ def take_bets():
             time.sleep(1)
             break
 
-def pay_out():
+def pay_out(): # Modify player_chips depending on game result
     global bet
     global player_chips
     global player_win
@@ -224,9 +234,10 @@ def pay_out():
 
     time.sleep(2)
 
-def keep_playing():
+def keep_playing(): # Loop the game until user exits or runs out of $$$
     global play_again
     global player_chips
+    global hands_played
 
     # Buy back in if out of funds
     if player_chips == 0:
@@ -239,7 +250,10 @@ def keep_playing():
                 break
             elif buy_in == str.casefold('No') or buy_in == str.casefold('N'):
                 play_again = False
-                print('Thanks for playing!')
+                if hands_played == 1:
+                    print('You lost it all in ' + str(hands_played) + ' hand. Thanks for playing!')
+                else:
+                    print('You lost it all in ' + str(hands_played) + ' hands. Thanks for playing!')
                 break
             else:
                 print('Invalid update. Please input yes or no.')
@@ -255,7 +269,10 @@ def keep_playing():
             elif continue_game == str.casefold('No') or continue_game == str.casefold('N'):
                 play_again = False
                 time.sleep(1)
-                print('Thanks for playing!')
+                if hands_played == 1:
+                    print('You played ' + str(hands_played) + ' hand. Thanks for playing!')
+                else:
+                    print('You played ' + str(hands_played) + ' hands. Thanks for playing!')
                 time.sleep(0.7)
                 print('Your end total is $' + str(player_chips) + '!')
                 time.sleep(0.7)
@@ -263,11 +280,14 @@ def keep_playing():
             else:
                 print('Invalid update. Please input yes or no.')
 
-def intro():
-    print('Welcome to Blackjack v 1.0.0. This is a project I aim to grow as I learn new skills.')
+def intro(): # Introductory text
+    global version
+
+    print('Welcome to Blackjack v ' + version + '. This is a project I aim to grow as I learn new skills.')
     time.sleep(1)
     print('Thanks for checking it out!')
     time.sleep(2)
+    print('')
     print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
     print('     Win back what you bet, bets returned in a draw. Dealer sticks on 17 and treats all Aces as 1.')
     print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ')
