@@ -3,7 +3,7 @@ import time
 
 # Version Number
 
-version = '1.1.0'
+version = '1.1.1'
 
 # Cardset
 
@@ -31,10 +31,12 @@ cards_drawn = 0
 dealer_bust = False
 dealer_score = 0
 draw = False
+hands_drawn = 0
 hands_played = 0
 hands_won = 0
 hit_or_stick = 'Hit'
 live_deck = cards
+net_change = 0
 play_again = True
 player_bust = False
 player_chips = 100
@@ -53,6 +55,7 @@ def compare_scores(): # Score comparison and pay_out call
     global draw
     global play_again
     global hands_won
+    global hands_drawn
 
     # Win conditions
     if cards_drawn >= 5 and player_bust == False:
@@ -73,6 +76,7 @@ def compare_scores(): # Score comparison and pay_out call
     elif player_score == dealer_score and player_bust == False:
         print('Draw.')
         draw = True
+        hands_drawn += 1
 
     pay_out()
 
@@ -114,7 +118,9 @@ def dealer_turn(): # Dealer's turn sequence
     global dealer_bust
     global live_deck
 
-    print("Dealer's turn.")
+    print('')
+    time.sleep(0.5)
+    print("Dealer's turn:")
     time.sleep(1)
     dealer_hit()
     for cards in live_deck:
@@ -221,16 +227,19 @@ def pay_out(): # Modify player_chips depending on game result
     global player_chips
     global player_win
     global draw
+    global net_change
 
     # Win/Draw/Lose
     if player_win == True:
         print('Congrats! You win $' + str(bet) + '!')
         player_chips += int(bet)
+        net_change += int(bet)
     elif draw == True:
         print('Bets returned.')
     else:
         print('Better luck next time!')
         player_chips -= int(bet)
+        net_change -= int(bet)
 
     time.sleep(2)
 
@@ -294,7 +303,7 @@ def take_bets(): # Receive and process bet input from user
     time.sleep(1.2)
     bet_confirmation = False
     while bet_confirmation == False:
-        bet = input('Place your bets: ')
+        bet = input('Place your bets: $')
         if  bet.isdigit() == False:
             print('Invalid input, please enter a whole number.')
             time.sleep(1)
@@ -307,8 +316,10 @@ def take_bets(): # Receive and process bet input from user
             break
 
 def view_stats():
+    global hands_drawn
     global hands_won
     global hands_played
+    global net_change
 
     # Calc Stats
     win_rate = int((hands_won/hands_played) * 100)
@@ -320,10 +331,19 @@ def view_stats():
         if open_stats == str.casefold('Yes') or open_stats == str.casefold('Y'):
             if hands_played == 1 and hands_won == 1: 
                 print('You won the only hand you played. Why are you here?')
-            elif hands_played == 1 and hands_won == 0:
+            elif hands_played == 1 and hands_won == 0 and hands_drawn == 0:
                 print('You lost the only hand you played. Way to go, champ.')
+            elif hands_played == 1 and hands_drawn == 1:
+                print('One game, one draw. But you knew that already.')
             else:
                 print('You won ' + str(hands_won) + ' hands out of ' + str(hands_played) + ' games played, for a win rate of ' + str(win_rate) + '%.')
+                time.sleep(0.5)
+                if net_change > 0:
+                    print("You made $" + str(net_change) + " in net profit!")
+                elif net_change < 0:
+                    print("You lost a total of $" + str(abs(net_change)) + ".")
+                else:
+                    print('You broke even.')
             break
         elif open_stats == str.casefold('No') or open_stats == str.casefold('N'):
             break
