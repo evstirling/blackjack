@@ -3,7 +3,7 @@ import time
 
 # Version Number
 
-version = '1.1.1'
+version = '1.1.2'
 
 # Cardset
 
@@ -26,10 +26,12 @@ cards = [
 # Variable inits
 
 ace_selector = 0
+all_in_counter = 0
 bet = ''
 cards_drawn = 0
 dealer_bust = False
 dealer_score = 0
+double_down = False
 draw = False
 hands_drawn = 0
 hands_played = 0
@@ -58,6 +60,8 @@ def compare_scores(): # Score comparison and pay_out call
     global hands_drawn
 
     # Win conditions
+    time.sleep(1)
+    print('')
     if cards_drawn >= 5 and player_bust == False:
         print('You drew 5 cards. You win!') 
         player_win = True
@@ -127,7 +131,7 @@ def dealer_turn(): # Dealer's turn sequence
         time.sleep(1)
         if dealer_score > 21:
             dealer_bust = True
-            print('Dealer has busted.')
+            print('Dealer has gone bust.')
             break
         elif dealer_score >= 17:
             break
@@ -197,10 +201,6 @@ def keep_playing(): # Loop the game until user exits or runs out of $$$
                 break
             elif buy_in == str.casefold('No') or buy_in == str.casefold('N'):
                 play_again = False
-                if hands_played == 1:
-                    print('You lost it all in ' + str(hands_played) + ' hand. Thanks for playing!')
-                else:
-                    print('You lost it all in ' + str(hands_played) + ' hands. Thanks for playing!')
                 break
             else:
                 print('Invalid update. Please input yes or no.')
@@ -248,19 +248,38 @@ def player_turn(): # Player's turn sequence
     global player_bust
     global hit_or_stick
     global live_deck
+    global bet
+    global cards_drawn
+    global double_down
+    global player_chips
 
-    # Hit or stick
+    # Hit, stick, or double down?
+
     for cards in live_deck:
         if player_score > 21:
             player_bust = True
-            print("You're busted!")
-            time.sleep(0.8)
+            print("You've gone bust...")
+            time.sleep(1)
             break
-        hit_or_stick = input('Hit or Stick? ') 
+        if double_down == True:
+            break
+        if cards_drawn == 2 and player_chips >= int(bet) * 2:
+            hit_or_stick = input('Hit, stick, or double down? ')
+        else:
+            hit_or_stick = input('Hit or stick? ') 
+
+            # Player options
+
         if player_score <= 21 and hit_or_stick == str.casefold('Hit'):
             hit()
         elif player_score <= 21 and hit_or_stick == str.casefold('Stick'):
             break
+        elif player_score <= 21 and hit_or_stick == str.casefold('double down') and cards_drawn == 2 and player_chips >= int(bet) * 2:
+            bet = int(bet) * 2
+            double_down = True
+            print('Bet increased to $' + str(bet) + '.')
+            time.sleep(1)
+            hit()
         else:
             print("Invalid input. Please type either hit or stick.")
 
@@ -277,6 +296,7 @@ def shuffle(): # Shuffle the deck, refresh the variables
     global player_win
     global draw
     global hands_played
+    global double_down
 
     print('Shuffling the deck.')
     live_deck = cards
@@ -291,12 +311,14 @@ def shuffle(): # Shuffle the deck, refresh the variables
     player_win = False
     draw = False
     hands_played += 1
+    double_down = False
     for i in range(3):
         time.sleep(0.7)
         print('.')
     
 def take_bets(): # Receive and process bet input from user
     global bet
+    global all_in_counter
     global player_chips
 
     print('You have $' + str(player_chips) + '.')
@@ -311,11 +333,16 @@ def take_bets(): # Receive and process bet input from user
             print('Insufficient funds.')
             bet = 0
         elif bet.isdigit() == True:
-            print('Your bet is $' + str(bet) + '. Good luck!')
+            if int(bet) == player_chips:
+                print('All in!')
+                all_in_counter += 1
+            else:
+                print('Your bet is $' + str(bet) + '. Good luck!')
             time.sleep(1)
             break
 
 def view_stats():
+    global all_in_counter
     global hands_drawn
     global hands_won
     global hands_played
@@ -329,12 +356,14 @@ def view_stats():
     while view_stats_confirmation == False:
         open_stats = input("View session stats? [Yes/No] ")
         if open_stats == str.casefold('Yes') or open_stats == str.casefold('Y'):
+
+            # (rude) Win rate
             if hands_played == 1 and hands_won == 1: 
-                print('You won the only hand you played. Why are you here?')
+                print('You won the only hand you played.')
             elif hands_played == 1 and hands_won == 0 and hands_drawn == 0:
                 print('You lost the only hand you played. Way to go, champ.')
             elif hands_played == 1 and hands_drawn == 1:
-                print('One game, one draw. But you knew that already.')
+                print('One game, one draw. But you knew that already.') 
             else:
                 print('You won ' + str(hands_won) + ' hands out of ' + str(hands_played) + ' games played, for a win rate of ' + str(win_rate) + '%.')
                 time.sleep(0.5)
@@ -344,12 +373,29 @@ def view_stats():
                     print("You lost a total of $" + str(abs(net_change)) + ".")
                 else:
                     print('You broke even.')
+            time.sleep(1)
+
+            # Other stats
+            if hands_drawn == 1:
+                print('You had ' + str(hands_drawn) + ' draw during your session.')
+                time.sleep(1) 
+            elif hands_drawn > 0:
+                print('You had ' + str(hands_drawn) + ' draws during your session.')
+                time.sleep(1)
+
+            if all_in_counter == 1:
+                print('You went all in ' + str(all_in_counter) + ' time.')
+                time.sleep(1) 
+            elif all_in_counter > 0:
+                print('You went all in ' + str(all_in_counter) + ' times.')
+                time.sleep(1) 
+
             break
         elif open_stats == str.casefold('No') or open_stats == str.casefold('N'):
             break
         else:
             print('Invalid update. Please input yes or no.')
-    time.sleep(0.7)
+    
     print('Thanks for playing. Goodbye!')
 
 # Game sequence
