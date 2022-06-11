@@ -342,6 +342,7 @@ def shuffle(): # Shuffle the deck, refresh the variables
     hands_played += 1
     double_down = False
     live_deck = live_deck + discard
+    discard = []
 
     for i in range(3):
         time.sleep(0.7)
