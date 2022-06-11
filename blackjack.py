@@ -3,7 +3,7 @@ import time
 
 # Version Number
 
-version = '1.1.2'
+version = '1.1.3'
 
 # Cardset
 
@@ -31,6 +31,7 @@ bet = ''
 cards_drawn = 0
 dealer_bust = False
 dealer_score = 0
+discard = []
 double_down = False
 draw = False
 hands_drawn = 0
@@ -44,6 +45,7 @@ player_bust = False
 player_chips = 100
 player_score = 0
 player_win = False
+total_cards_drawn = 0
 
 # Functions
 
@@ -102,12 +104,13 @@ def core_game_loop(): # Main sequence of game functions
 def dealer_hit(): # Dealer's draw phase
     global dealer_score
     global live_deck
+    global discard
+    global drawn_card
 
     # Draw Card
-    number = random.randint(0, (len(live_deck)-1))
-    drawn_card = live_deck[number]
-    live_deck.pop(number)
-    print('The dealer drew ' + drawn_card[0] + ' of ' + drawn_card[1] + '.')
+
+    draw_card()
+    print('The dealer received the ' + drawn_card[0] + ' of ' + drawn_card[1] + '.')
     time.sleep(1)
 
     # Point Tally (Dealer treats all Aces as 1)
@@ -127,22 +130,34 @@ def dealer_turn(): # Dealer's turn sequence
     print("Dealer's turn:")
     time.sleep(1)
     dealer_hit()
-    for cards in live_deck:
+
+    dealers_turn = True
+    while dealers_turn == True:
         time.sleep(1)
         if dealer_score > 21:
             dealer_bust = True
             print('Dealer has gone bust.')
             break
         elif dealer_score >= 17:
+            print('Dealer sticks.')
             break
         elif dealer_score < 17:
             dealer_hit()
 
-def hit():  # Hit me babey
-    # Draw Card
+def draw_card():
+    global drawn_card
+    global live_deck
+    global discard
+
     number = random.randint(0, (len(live_deck)-1))
     drawn_card = live_deck[number]
     live_deck.pop(number)
+    discard.append(drawn_card)
+
+def hit():  # Hit me babey
+
+    # Draw Card
+    draw_card()
     print('You received the ' + drawn_card[0] + ' of ' + drawn_card[1] + '.')
     time.sleep(1)
 
@@ -150,6 +165,7 @@ def hit():  # Hit me babey
     global player_score
     global ace_selector
     global cards_drawn
+    global total_cards_drawn
 
     if drawn_card[0] == 'Ace':
         while ace_selector != 1 or ace_selector != 11:
@@ -165,6 +181,7 @@ def hit():  # Hit me babey
     else:
         player_score += int(drawn_card[2])
     cards_drawn += 1
+    total_cards_drawn += 1
     if cards_drawn > 1: print('You have ' + str(player_score) + ' points with ' + str(cards_drawn) + ' cards.')
 
 def intro(): # Introductory text
@@ -253,26 +270,38 @@ def player_turn(): # Player's turn sequence
     global double_down
     global player_chips
 
-    # Hit, stick, or double down?
+    players_turn = True
+    while players_turn == True:
 
-    for cards in live_deck:
+        # Check bust
         if player_score > 21:
             player_bust = True
             print("You've gone bust...")
             time.sleep(1)
             break
+
+        # Check double down
         if double_down == True:
             break
+
+        # Check 5 cards
+        if cards_drawn == 5:
+            break
+
+        # Hit, stick or double down?
         if cards_drawn == 2 and player_chips >= int(bet) * 2:
             hit_or_stick = input('Hit, stick, or double down? ')
         else:
             hit_or_stick = input('Hit or stick? ') 
 
-            # Player options
-
+        # Player options
         if player_score <= 21 and hit_or_stick == str.casefold('Hit'):
+            print('Hit.')
+            time.sleep(1)
             hit()
         elif player_score <= 21 and hit_or_stick == str.casefold('Stick'):
+            print('Stuck. You have ' + str(player_score)  + ' points.')
+            time.sleep(1)
             break
         elif player_score <= 21 and hit_or_stick == str.casefold('double down') and cards_drawn == 2 and player_chips >= int(bet) * 2:
             bet = int(bet) * 2
@@ -297,9 +326,9 @@ def shuffle(): # Shuffle the deck, refresh the variables
     global draw
     global hands_played
     global double_down
+    global discard
 
     print('Shuffling the deck.')
-    live_deck = cards
     player_score = 0
     player_bust = False
     dealer_score = 0
@@ -312,9 +341,12 @@ def shuffle(): # Shuffle the deck, refresh the variables
     draw = False
     hands_played += 1
     double_down = False
+    live_deck = live_deck + discard
+
     for i in range(3):
         time.sleep(0.7)
         print('.')
+    
     
 def take_bets(): # Receive and process bet input from user
     global bet
@@ -347,9 +379,11 @@ def view_stats():
     global hands_won
     global hands_played
     global net_change
+    global total_cards_drawn
 
     # Calc Stats
     win_rate = int((hands_won/hands_played) * 100)
+    avg_cards = round(total_cards_drawn/hands_played, 1)
 
     # Ask to, then display stats 
     view_stats_confirmation = False
@@ -375,10 +409,19 @@ def view_stats():
                     print('You broke even.')
             time.sleep(1)
 
+            # Avg cards
+
+            if total_cards_drawn == 69:
+                print("You've drawn " + str(total_cards_drawn) + " cards this session. Nice.")
+            else:
+                print("You've drawn a total of " + str(total_cards_drawn) + " cards, for an average of " + str(avg_cards) + " cards per game.")
+            time.sleep(1)
+
             # Other stats
+
             if hands_drawn == 1:
                 print('You had ' + str(hands_drawn) + ' draw during your session.')
-                time.sleep(1) 
+                time.sleep(1)
             elif hands_drawn > 0:
                 print('You had ' + str(hands_drawn) + ' draws during your session.')
                 time.sleep(1)
@@ -389,6 +432,7 @@ def view_stats():
             elif all_in_counter > 0:
                 print('You went all in ' + str(all_in_counter) + ' times.')
                 time.sleep(1) 
+            
 
             break
         elif open_stats == str.casefold('No') or open_stats == str.casefold('N'):
