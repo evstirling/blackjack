@@ -3,7 +3,7 @@ import time
 
 # Version Number
 
-version = '1.1.3'
+version = '1.2.0'
 
 # Cardset
 
@@ -341,8 +341,11 @@ def shuffle(): # Shuffle the deck, refresh the variables
     draw = False
     hands_played += 1
     double_down = False
+
+    # Add discard back to deck
     live_deck = live_deck + discard
-    discard = []
+    for entry in range(len(discard)):
+        discard.pop()
 
     for i in range(3):
         time.sleep(0.7)
