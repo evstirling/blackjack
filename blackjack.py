@@ -3,7 +3,7 @@ import time
 
 # Version Number
 
-version = '1.2.0'
+version = '1.2.1'
 
 # Cardset
 
@@ -45,7 +45,14 @@ player_bust = False
 player_chips = 100
 player_score = 0
 player_win = False
+timer = 0
 total_cards_drawn = 0
+
+# Timer
+while play_again == True:
+    time.sleep(1)
+    timer += 1
+    
 
 # Functions
 
@@ -191,15 +198,20 @@ def intro(): # Introductory text
     time.sleep(1)
     print('Thanks for checking it out!')
     time.sleep(2)
-    print('')
-    print('+~~~~~~~~~~~~~~~~~~~+')
-    print('|   House Rules :   |')
-    print('+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+')
-    print('|   Win back what you bet, bets returned in a draw.   |') 
-    print('|    Dealer sticks on 17 and treats all Aces as 1.    |')
-    print('+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+')
-    print('')
+    intro_text = """
+    +===================+
+    |   House Rules :   |               
+    +=====================================================+
+    |   Win back what you bet, bets returned in a draw.   | 
+    |    Dealer sticks on 17 and treats all Aces as 1.    |
+    |   5 card draw wins. Double down on first turn only. |    
+    +=====================================================+
+                                        |  Buy in : $100  |
+                                        +=================+
+    """
+    print(intro_text)   
     time.sleep(1)
+
 
 def keep_playing(): # Loop the game until user exits or runs out of $$$
     global play_again
@@ -275,6 +287,7 @@ def player_turn(): # Player's turn sequence
 
         # Check bust
         if player_score > 21:
+            time.sleep(1)
             player_bust = True
             print("You've gone bust...")
             time.sleep(1)
@@ -288,6 +301,12 @@ def player_turn(): # Player's turn sequence
         if cards_drawn == 5:
             break
 
+        # Check 21 points
+        if player_score == 21:
+            time.sleep(1)
+            print('You have 21 points! Stuck.')
+            break
+
         # Hit, stick or double down?
         if cards_drawn == 2 and player_chips >= int(bet) * 2:
             hit_or_stick = input('Hit, stick, or double down? ')
@@ -295,7 +314,7 @@ def player_turn(): # Player's turn sequence
             hit_or_stick = input('Hit or stick? ') 
 
         # Player options
-        if player_score <= 21 and hit_or_stick == str.casefold('Hit'):
+        if player_score < 21 and hit_or_stick == str.casefold('Hit'):
             print('Hit.')
             time.sleep(1)
             hit()
@@ -384,6 +403,7 @@ def view_stats():
     global hands_played
     global net_change
     global total_cards_drawn
+    global timer
 
     # Calc Stats
     win_rate = int((hands_won/hands_played) * 100)
@@ -396,6 +416,7 @@ def view_stats():
         if open_stats == str.casefold('Yes') or open_stats == str.casefold('Y'):
 
             # (rude) Win rate
+
             if hands_played == 1 and hands_won == 1: 
                 print('You won the only hand you played.')
             elif hands_played == 1 and hands_won == 0 and hands_drawn == 0:
@@ -421,6 +442,12 @@ def view_stats():
                 print("You've drawn a total of " + str(total_cards_drawn) + " cards, for an average of " + str(avg_cards) + " cards per game.")
             time.sleep(1)
 
+            # Timer
+
+            if timer > 60:
+                timer = timer/60
+                print('Session length: {} minutes.'.format(timer))
+
             # Other stats
 
             if hands_drawn == 1:
@@ -436,8 +463,7 @@ def view_stats():
             elif all_in_counter > 0:
                 print('You went all in ' + str(all_in_counter) + ' times.')
                 time.sleep(1) 
-            
-
+        
             break
         elif open_stats == str.casefold('No') or open_stats == str.casefold('N'):
             break
