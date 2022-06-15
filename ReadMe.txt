@@ -15,3 +15,7 @@
 
 blackjack.py: 
     Command line game of blackjack. The first independent project I have created.
+
+    Modes:
+        Standard - A standard game of Blackjack. Get as close to 21 points as possible and try to beat the dealer.
+        Auto - Simulate large volumes of games and view statistics on wins/draws/busts etc.
