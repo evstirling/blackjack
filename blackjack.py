@@ -3,7 +3,7 @@ import time
 
 # Version Number
 
-version = '1.2.2'
+version = '1.2.3'
 
 # Cardset
 
@@ -52,17 +52,17 @@ total_cards_drawn = 0
 # Functions
 
 def compare_scores(): # Score comparison and pay_out call
-    global player_score
-    global dealer_score
-    global player_bust
-    global dealer_bust
     global cards_drawn
-    global player_win
-    global draw
-    global play_again
-    global hands_won
-    global hands_drawn
+    global dealer_bust
     global dealer_cards_drawn
+    global dealer_score
+    global draw
+    global hands_drawn
+    global hands_won
+    global player_score
+    global player_bust
+    global player_win
+    global play_again
 
     # Win conditions
     time.sleep(1)
@@ -98,7 +98,6 @@ def core_game_loop(): # Main sequence of game functions
     # Opening Hand
     hit()
     hit()
-    
     player_turn()
 
     # If player busts, game ends. If player has drawn 5 cards, they win
@@ -109,9 +108,9 @@ def core_game_loop(): # Main sequence of game functions
 
 def dealer_hit(): # Dealer's draw phase
     global dealer_score
-    global live_deck
     global discard
     global drawn_card
+    global live_deck
 
     # Draw Card
 
@@ -119,13 +118,16 @@ def dealer_hit(): # Dealer's draw phase
     print('The dealer received the ' + drawn_card[0] + ' of ' + drawn_card[1] + '.')
     time.sleep(1)
 
-    # Ace Determination + Point Tally
+    # Ace Determination
     
     if drawn_card[0] == 'Ace':
         if dealer_score >= 11:
             dealer_score += drawn_card[2]
         elif dealer_score <= 10:
             dealer_score += drawn_card[3]
+
+    # Point Tally
+
     else:
         dealer_score += int(drawn_card[2])
 
@@ -135,15 +137,19 @@ def dealer_hit(): # Dealer's draw phase
         print('The dealer has {} points.'.format(dealer_score))
 
 def dealer_turn(): # Dealer's turn sequence
-    global dealer_score
     global dealer_bust
+    global dealer_score
     global live_deck
+
+    # Start turn
 
     print('')
     time.sleep(0.5)
     print("Dealer's turn:")
     time.sleep(1)
     dealer_hit()
+
+    # Check score, stick at 17, bust at 21
 
     dealers_turn = True
     while dealers_turn == True:
@@ -159,9 +165,9 @@ def dealer_turn(): # Dealer's turn sequence
             dealer_hit()
 
 def draw_card():
+    global discard
     global drawn_card
     global live_deck
-    global discard
 
     number = random.randint(0, (len(live_deck)-1))
     drawn_card = live_deck[number]
@@ -169,17 +175,18 @@ def draw_card():
     discard.append(drawn_card)
 
 def hit():  # Hit me babey
+    global ace_selector
+    global cards_drawn
+    global player_score
+    global total_cards_drawn
 
     # Draw Card
+
     draw_card()
     print('You received the ' + drawn_card[0] + ' of ' + drawn_card[1] + '.')
     time.sleep(1)
 
-    # Ace Selection + Point Tally
-    global player_score
-    global ace_selector
-    global cards_drawn
-    global total_cards_drawn
+    # Ace Selection
 
     if drawn_card[0] == 'Ace':
         while ace_selector != 1 or ace_selector != 11:
@@ -192,6 +199,9 @@ def hit():  # Hit me babey
                 break
             else:
                 print("Invalid response. Please enter either 1 or 11.")
+
+    # Point Tally
+
     else:
         player_score += int(drawn_card[2])
     cards_drawn += 1
@@ -221,10 +231,10 @@ def intro(): # Introductory text
 
 
 def keep_playing(): # Loop the game until user exits or runs out of $$$
-    global play_again
-    global player_chips
     global hands_played
     global hands_won
+    global play_again
+    global player_chips
 
     # Buy back in if out of funds
     if player_chips == 0:
@@ -260,12 +270,13 @@ def keep_playing(): # Loop the game until user exits or runs out of $$$
 
 def pay_out(): # Modify player_chips depending on game result
     global bet
-    global player_chips
-    global player_win
     global draw
     global net_change
+    global player_chips
+    global player_win
 
     # Win/Draw/Lose
+
     if player_win == True:
         print('Congrats! You win ${}!'.format(bet))
         player_chips += int(bet)
@@ -276,18 +287,17 @@ def pay_out(): # Modify player_chips depending on game result
         print('Better luck next time!')
         player_chips -= int(bet)
         net_change -= int(bet)
-
     time.sleep(2)
 
 def player_turn(): # Player's turn sequence
-    global player_score
-    global player_bust
-    global hit_or_stick
-    global live_deck
     global bet
     global cards_drawn
     global double_down
+    global hit_or_stick
+    global live_deck
+    global player_bust
     global player_chips
+    global player_score
 
     players_turn = True
     while players_turn == True:
@@ -339,36 +349,36 @@ def player_turn(): # Player's turn sequence
             print("Invalid input. Please type either hit or stick.")
 
 def shuffle(): # Shuffle the deck, refresh the variables
-    global live_deck
-    global player_score
-    global player_bust
-    global dealer_score
-    global dealer_bust
     global ace_selector
-    global hit_or_stick
-    global cards_drawn
     global bet
-    global player_win
+    global cards_drawn
+    global dealer_bust
+    global dealer_cards_drawn
+    global dealer_score
+    global discard
+    global double_down
     global draw
     global hands_played
-    global double_down
-    global discard
-    global dealer_cards_drawn
+    global hit_or_stick
+    global live_deck
+    global player_bust
+    global player_score
+    global player_win
 
     print('Shuffling the deck.')
-    player_score = 0
-    player_bust = False
-    dealer_score = 0
+    ace_selector = 0
+    bet = ''
+    cards_drawn = 0
     dealer_bust = False
     dealer_cards_drawn = 0
-    ace_selector = 0
-    hit_or_stick = 'Hit'
-    cards_drawn = 0
-    bet = ''
-    player_win = False
+    dealer_score = 0
+    double_down = False
     draw = False
     hands_played += 1
-    double_down = False
+    hit_or_stick = 'Hit'
+    player_bust = False
+    player_score = 0
+    player_win = False
 
     # Add discard back to deck
     live_deck = live_deck + discard
@@ -381,8 +391,8 @@ def shuffle(): # Shuffle the deck, refresh the variables
     
     
 def take_bets(): # Receive and process bet input from user
-    global bet
     global all_in_counter
+    global bet
     global player_chips
 
     print('You have ${}.'.format(player_chips))
@@ -408,8 +418,8 @@ def take_bets(): # Receive and process bet input from user
 def view_stats():
     global all_in_counter
     global hands_drawn
-    global hands_won
     global hands_played
+    global hands_won
     global net_change
     global total_cards_drawn
 
