@@ -3,7 +3,7 @@ import time
 
 # Version Number
 
-version = '1.2.1'
+version = '1.2.2'
 
 # Cardset
 
@@ -31,6 +31,7 @@ bet = ''
 cards_drawn = 0
 dealer_bust = False
 dealer_score = 0
+dealer_cards_drawn = 0
 discard = []
 double_down = False
 draw = False
@@ -48,12 +49,6 @@ player_win = False
 timer = 0
 total_cards_drawn = 0
 
-# Timer
-while play_again == True:
-    time.sleep(1)
-    timer += 1
-    
-
 # Functions
 
 def compare_scores(): # Score comparison and pay_out call
@@ -67,14 +62,18 @@ def compare_scores(): # Score comparison and pay_out call
     global play_again
     global hands_won
     global hands_drawn
+    global dealer_cards_drawn
 
     # Win conditions
     time.sleep(1)
     print('')
     if cards_drawn >= 5 and player_bust == False:
-        print('You drew 5 cards. You win!') 
+        print('You have 5 cards. You win!') 
         player_win = True
         hands_won += 1
+    elif dealer_cards_drawn >= 5 and dealer_bust == False:
+        print('Dealer has 5 cards. The house wins.')
+        time.sleep(1)
     elif player_score > dealer_score and player_bust == False:
         print('You win!')
         player_win = True
@@ -120,12 +119,20 @@ def dealer_hit(): # Dealer's draw phase
     print('The dealer received the ' + drawn_card[0] + ' of ' + drawn_card[1] + '.')
     time.sleep(1)
 
-    # Point Tally (Dealer treats all Aces as 1)
-    dealer_score += int(drawn_card[2])
-    if dealer_score == 1:
-        print('The dealer has ' + str(dealer_score) + ' point.')
+    # Ace Determination + Point Tally
+    
+    if drawn_card[0] == 'Ace':
+        if dealer_score >= 11:
+            dealer_score += drawn_card[2]
+        elif dealer_score <= 10:
+            dealer_score += drawn_card[3]
     else:
-        print('The dealer has ' + str(dealer_score) + ' points.')
+        dealer_score += int(drawn_card[2])
+
+    if dealer_score == 1:
+        print('The dealer has {} point.'.format(dealer_score))
+    else:
+        print('The dealer has {} points.'.format(dealer_score))
 
 def dealer_turn(): # Dealer's turn sequence
     global dealer_score
@@ -189,12 +196,12 @@ def hit():  # Hit me babey
         player_score += int(drawn_card[2])
     cards_drawn += 1
     total_cards_drawn += 1
-    if cards_drawn > 1: print('You have ' + str(player_score) + ' points with ' + str(cards_drawn) + ' cards.')
+    if cards_drawn > 1: print('You have {} cards, worth {} points.'.format(cards_drawn, player_score))
 
 def intro(): # Introductory text
     global version
 
-    print('Welcome to Blackjack v ' + version + '. This is a project I aim to grow as I learn new skills.')
+    print('Welcome to Blackjack.py v{}.'.format(version))
     time.sleep(1)
     print('Thanks for checking it out!')
     time.sleep(2)
@@ -203,7 +210,7 @@ def intro(): # Introductory text
     |   House Rules :   |               
     +=====================================================+
     |   Win back what you bet, bets returned in a draw.   | 
-    |    Dealer sticks on 17 and treats all Aces as 1.    |
+    |       Dealer sticks on 17 and evaluates Aces.       |
     |   5 card draw wins. Double down on first turn only. |    
     +=====================================================+
                                         |  Buy in : $100  |
@@ -245,7 +252,7 @@ def keep_playing(): # Loop the game until user exits or runs out of $$$
             elif continue_game == str.casefold('No') or continue_game == str.casefold('N'):
                 play_again = False
                 time.sleep(0.7)
-                print('Your end total is $' + str(player_chips) + '!')
+                print('Your end total is ${}!'.format(player_chips))
                 time.sleep(0.7)
                 break
             else:
@@ -260,7 +267,7 @@ def pay_out(): # Modify player_chips depending on game result
 
     # Win/Draw/Lose
     if player_win == True:
-        print('Congrats! You win $' + str(bet) + '!')
+        print('Congrats! You win ${}!'.format(bet))
         player_chips += int(bet)
         net_change += int(bet)
     elif draw == True:
@@ -319,13 +326,13 @@ def player_turn(): # Player's turn sequence
             time.sleep(1)
             hit()
         elif player_score <= 21 and hit_or_stick == str.casefold('Stick'):
-            print('Stuck. You have ' + str(player_score)  + ' points.')
+            print('Stuck. You have {} points.'.format(player_score))
             time.sleep(1)
             break
         elif player_score <= 21 and hit_or_stick == str.casefold('double down') and cards_drawn == 2 and player_chips >= int(bet) * 2:
             bet = int(bet) * 2
             double_down = True
-            print('Bet increased to $' + str(bet) + '.')
+            print('Bet increased to ${}.'.format(bet))
             time.sleep(1)
             hit()
         else:
@@ -346,12 +353,14 @@ def shuffle(): # Shuffle the deck, refresh the variables
     global hands_played
     global double_down
     global discard
+    global dealer_cards_drawn
 
     print('Shuffling the deck.')
     player_score = 0
     player_bust = False
     dealer_score = 0
     dealer_bust = False
+    dealer_cards_drawn = 0
     ace_selector = 0
     hit_or_stick = 'Hit'
     cards_drawn = 0
@@ -376,7 +385,7 @@ def take_bets(): # Receive and process bet input from user
     global all_in_counter
     global player_chips
 
-    print('You have $' + str(player_chips) + '.')
+    print('You have ${}.'.format(player_chips))
     time.sleep(1.2)
     bet_confirmation = False
     while bet_confirmation == False:
@@ -392,7 +401,7 @@ def take_bets(): # Receive and process bet input from user
                 print('All in!')
                 all_in_counter += 1
             else:
-                print('Your bet is $' + str(bet) + '. Good luck!')
+                print('Your bet is ${}. Good luck!'.format(bet))
             time.sleep(1)
             break
 
@@ -403,7 +412,6 @@ def view_stats():
     global hands_played
     global net_change
     global total_cards_drawn
-    global timer
 
     # Calc Stats
     win_rate = int((hands_won/hands_played) * 100)
@@ -424,12 +432,12 @@ def view_stats():
             elif hands_played == 1 and hands_drawn == 1:
                 print('One game, one draw. But you knew that already.') 
             else:
-                print('You won ' + str(hands_won) + ' hands out of ' + str(hands_played) + ' games played, for a win rate of ' + str(win_rate) + '%.')
+                print('You won {} hands out of {} games played, for a win rate of {}%.'.format(hands_won, hands_played, win_rate))
                 time.sleep(0.5)
                 if net_change > 0:
-                    print("You made $" + str(net_change) + " in net profit!")
+                    print("You made ${} in net profit!".format(net_change))
                 elif net_change < 0:
-                    print("You lost a total of $" + str(abs(net_change)) + ".")
+                    print("You lost a total of ${}.".format(net_change))
                 else:
                     print('You broke even.')
             time.sleep(1)
@@ -437,31 +445,25 @@ def view_stats():
             # Avg cards
 
             if total_cards_drawn == 69:
-                print("You've drawn " + str(total_cards_drawn) + " cards this session. Nice.")
+                print("You've drawn {} cards this session. Nice.".format(total_cards_drawn))
             else:
-                print("You've drawn a total of " + str(total_cards_drawn) + " cards, for an average of " + str(avg_cards) + " cards per game.")
+                print("You've drawn a total of {} cards, for an average of {} cards per game.".format(total_cards_drawn, avg_cards))
             time.sleep(1)
-
-            # Timer
-
-            if timer > 60:
-                timer = timer/60
-                print('Session length: {} minutes.'.format(timer))
 
             # Other stats
 
             if hands_drawn == 1:
-                print('You had ' + str(hands_drawn) + ' draw during your session.')
+                print('You had {} tie during your session.'.format(hands_drawn))
                 time.sleep(1)
             elif hands_drawn > 0:
-                print('You had ' + str(hands_drawn) + ' draws during your session.')
+                print('You had {} ties during your session.'.format(hands_drawn))
                 time.sleep(1)
 
             if all_in_counter == 1:
-                print('You went all in ' + str(all_in_counter) + ' time.')
+                print('You went all in {} time.'.format(all_in_counter))
                 time.sleep(1) 
             elif all_in_counter > 0:
-                print('You went all in ' + str(all_in_counter) + ' times.')
+                print('You went all in {} times.'.format(all_in_counter))
                 time.sleep(1) 
         
             break
