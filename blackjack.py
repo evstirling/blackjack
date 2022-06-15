@@ -3,7 +3,7 @@ import time
 
 # Version Number
 
-version = '1.2.3'
+version = '1.3.0'
 
 # Cardset
 
@@ -27,7 +27,12 @@ cards = [
 
 ace_selector = 0
 all_in_counter = 0
+auto_ace = 0
+auto_hands = 0
+auto_mode = False
+auto_stick = 0
 bet = ''
+bust_counter = 0
 cards_drawn = 0
 dealer_bust = False
 dealer_score = 0
@@ -46,10 +51,193 @@ player_bust = False
 player_chips = 100
 player_score = 0
 player_win = False
+record = []
 timer = 0
 total_cards_drawn = 0
 
 # Functions
+
+def auto_compare():
+    global bust_counter
+    global cards_drawn
+    global dealer_bust
+    global dealer_cards_drawn
+    global dealer_score
+    global draw
+    global hands_drawn
+    global hands_won
+    global net_change
+    global player_score
+    global player_bust
+    global player_chips
+    global player_win
+    global play_again
+
+    # Win conditions
+
+    if cards_drawn >= 5 and player_bust == False:
+        print('You win game {}.'.format(hands_played)) 
+        player_win = True
+        hands_won += 1
+    elif dealer_cards_drawn >= 5 and dealer_bust == False:
+        print('Dealer wins game {}.'.format(hands_played))
+    elif player_score > dealer_score and player_bust == False:
+        print('You win game {}.'.format(hands_played)) 
+        player_win = True
+        hands_won += 1
+    elif player_score < dealer_score and dealer_bust == True:
+        print('You win game {}.'.format(hands_played)) 
+        player_win = True
+        hands_won += 1
+    elif player_score < dealer_score and dealer_bust == False:
+        print('Dealer wins game {}.'.format(hands_played))
+    elif player_score == dealer_score and player_bust == False:
+        print('Tied game {}.'.format(hands_played))
+        draw = True
+        hands_drawn += 1
+    elif player_bust == True:
+        print('You went bust game {}.'.format(hands_played))
+        bust_counter += 1
+    else:
+        print('Error calculating winner.')
+
+    # Pay out
+
+    if player_win == True:
+        player_chips += int(bet)
+        net_change += int(bet)
+    elif player_win == False:
+        player_chips -= int(bet)
+        net_change -= int(bet)
+
+def auto_dealer_hit():
+    global dealer_cards_drawn
+    global dealer_score
+    global discard
+    global drawn_card
+    global live_deck
+
+    # Draw Card
+
+    draw_card()
+
+    # Ace Determination
+
+    if drawn_card[0] == 'Ace':
+        if dealer_score > 10:
+            dealer_score += drawn_card[2]
+        elif dealer_score <= 10:
+            dealer_score += drawn_card[3]
+
+    # Point Tally
+
+    else:
+        dealer_score += int(drawn_card[2])
+    dealer_cards_drawn += 1
+
+def auto_dealer_turn():
+    global dealer_bust
+    global dealer_score
+
+    # Check score, stick at 17, bust at 21
+
+    dealers_turn = True
+    while dealers_turn == True:
+        if dealer_score > 21:
+            dealer_bust = True
+            break
+        elif dealer_score >= 17:
+            break
+        elif dealer_score < 17:
+            auto_dealer_hit()
+
+def auto_hit():
+    global auto_ace
+    global cards_drawn
+    global discard
+    global drawn_card
+    global player_score
+    global total_cards_drawn
+
+    # Draw Card
+
+    draw_card()
+
+    # Ace Determination
+
+    if drawn_card[0] == 'Ace':
+        if player_score > auto_ace:
+            player_score += drawn_card[2]
+        elif player_score <= auto_ace:
+            player_score += drawn_card[3]
+
+    # Point Tally
+
+    else:
+        player_score += int(drawn_card[2])
+    cards_drawn += 1
+    total_cards_drawn += 1
+
+def auto_params():
+    global auto_ace
+    global auto_hands
+    global auto_mode 
+    global auto_stick
+    
+    # auto_stick
+
+    stick_value = False
+    while stick_value == False:
+        auto_stick = input('Where would you like to stick? ')
+        if auto_stick.isdigit() == True and int(auto_stick) > 0 and int(auto_stick) <= 21:
+            auto_stick = int(auto_stick)
+            break
+        else: 
+            print('Invalid input. Please input a whole number greater than zero but less than 21.')
+
+    # auto_hands
+            
+    hands_value = False
+    while hands_value == False:
+        auto_hands = input('How many hands do you want to simulate? ')
+        if auto_hands.isdigit() == True and int(auto_hands) > 0:
+            auto_hands = int(auto_hands)
+            break
+        else: 
+            print('Invalid input. Please input a whole number greater than zero.')
+
+    # auto_ace
+
+    ace_value = False
+    while ace_value == False:
+        auto_ace = input('Enter desired Ace breakpoint (default is 10): ')
+        if auto_ace.isdigit() == True and int(auto_ace) > 0 and int(auto_ace) <= 21:
+            auto_ace = int(auto_ace)
+            break
+        else: 
+            print('Invalid input. Please input a whole number greater than zero but less than 21.')
+
+    # auto_bet
+
+    take_bets()
+
+def auto_turn():
+    global auto_stick
+    global live_deck
+    global player_bust
+    global player_score
+
+    # Check score, stick at auto_stick, bust at 21
+
+    auto_turn = True
+    while auto_turn == True:
+        if player_score > 21:
+            player_bust = True
+            break
+        elif player_score >= auto_stick:
+            break
+        elif player_score < auto_stick:
+            auto_hit()
 
 def compare_scores(): # Score comparison and pay_out call
     global cards_drawn
@@ -89,6 +277,8 @@ def compare_scores(): # Score comparison and pay_out call
         print('Draw.')
         draw = True
         hands_drawn += 1
+    else:
+        print('Error calculating winner.')
 
     pay_out()
 
@@ -108,6 +298,7 @@ def core_game_loop(): # Main sequence of game functions
 
 def dealer_hit(): # Dealer's draw phase
     global dealer_score
+    global dealer_cards_drawn
     global discard
     global drawn_card
     global live_deck
@@ -119,7 +310,7 @@ def dealer_hit(): # Dealer's draw phase
     time.sleep(1)
 
     # Ace Determination
-    
+
     if drawn_card[0] == 'Ace':
         if dealer_score >= 11:
             dealer_score += drawn_card[2]
@@ -135,6 +326,7 @@ def dealer_hit(): # Dealer's draw phase
         print('The dealer has {} point.'.format(dealer_score))
     else:
         print('The dealer has {} points.'.format(dealer_score))
+    dealer_cards_drawn += 1
 
 def dealer_turn(): # Dealer's turn sequence
     global dealer_bust
@@ -214,7 +406,7 @@ def intro(): # Introductory text
     print('Welcome to Blackjack.py v{}.'.format(version))
     time.sleep(1)
     print('Thanks for checking it out!')
-    time.sleep(2)
+    time.sleep(1)
     intro_text = """
     +===================+
     |   House Rules :   |               
@@ -229,9 +421,7 @@ def intro(): # Introductory text
     print(intro_text)   
     time.sleep(1)
 
-
 def keep_playing(): # Loop the game until user exits or runs out of $$$
-    global hands_played
     global hands_won
     global play_again
     global player_chips
@@ -247,6 +437,9 @@ def keep_playing(): # Loop the game until user exits or runs out of $$$
                 break
             elif buy_in == str.casefold('No') or buy_in == str.casefold('N'):
                 play_again = False
+                print("You're right, walking away is sometimes the best option.")
+                time.sleep(1)
+                print('Thanks for playing! Goodbye!')
                 break
             else:
                 print('Invalid update. Please input yes or no.')
@@ -262,11 +455,81 @@ def keep_playing(): # Loop the game until user exits or runs out of $$$
             elif continue_game == str.casefold('No') or continue_game == str.casefold('N'):
                 play_again = False
                 time.sleep(0.7)
-                print('Your end total is ${}!'.format(player_chips))
+                print('Your end total is ${}! Thanks for playing!'.format(player_chips))
                 time.sleep(0.7)
                 break
             else:
                 print('Invalid input. Please input yes or no.')
+
+def mode_auto():
+    global auto_mode
+    global bust_counter
+    global hands_drawn
+    global hands_played
+    global hands_won
+    global net_change
+    global player_chips
+    global total_cards_drawn
+
+    # Auto 
+
+    auto_mode = True
+    continue_sim = True
+    while continue_sim == True:
+        auto_params()
+        while hands_played < auto_hands:
+            shuffle()
+            auto_turn() 
+            auto_dealer_turn()
+            auto_compare()
+            if auto_hands <= 1000: time.sleep(0.05)
+        view_stats()
+
+        # Run another test, reset test variables
+
+        continue_game = input("Run another test? [Yes/No] ")
+        if continue_game == str.casefold('Yes') or continue_game == str.casefold('Y'):
+                continue_sim = True
+                bust_counter = 0
+                hands_drawn = 0
+                hands_played = 0
+                hands_won = 0 
+                net_change = 0
+                player_chips = 100
+                total_cards_drawn = 0
+                for entry in range(len(record)): record.pop()
+
+                print('')
+        elif continue_game == str.casefold('No') or continue_game == str.casefold('N'):
+                continue_sim = False
+                print('Thanks for testing the sim! Goodbye!')
+                break
+        else:
+            print('Invalid input. Please input yes or no.')
+
+def mode_selection():
+    mode_select = False
+    while mode_select == False:
+        mode = input('Please select your game mode [Standard/Auto]: ')
+        if mode == str.casefold('auto') or mode == str.casefold('a'):
+            mode_auto()
+            break
+        elif mode == str.casefold('standard') or mode == str.casefold('s'):
+            mode_standard()
+            break
+        else:
+            print('Invalid input. Please input auto or standard.')
+            time.sleep(1)
+
+def mode_standard():
+    global play_again
+
+    while play_again == True:
+        shuffle()
+        take_bets()
+        core_game_loop()
+        view_stats()
+        keep_playing()
 
 def pay_out(): # Modify player_chips depending on game result
     global bet
@@ -291,6 +554,7 @@ def pay_out(): # Modify player_chips depending on game result
 
 def player_turn(): # Player's turn sequence
     global bet
+    global bust_counter
     global cards_drawn
     global double_down
     global hit_or_stick
@@ -306,6 +570,7 @@ def player_turn(): # Player's turn sequence
         if player_score > 21:
             time.sleep(1)
             player_bust = True
+            bust_counter += 1
             print("You've gone bust...")
             time.sleep(1)
             break
@@ -348,7 +613,7 @@ def player_turn(): # Player's turn sequence
         else:
             print("Invalid input. Please type either hit or stick.")
 
-def shuffle(): # Shuffle the deck, refresh the variables
+def shuffle(): # Shuffle the deck, refresh the variables, record the record
     global ace_selector
     global bet
     global cards_drawn
@@ -365,9 +630,25 @@ def shuffle(): # Shuffle the deck, refresh the variables
     global player_score
     global player_win
 
-    print('Shuffling the deck.')
-    ace_selector = 0
-    bet = ''
+    # Add to record
+
+    if player_win == True:
+        record.append('win')
+    elif player_bust == True:
+        record.append('bust')
+    elif draw == True:
+        record.append('draw')
+    elif player_win == False:
+        record.append('lost')
+    else:
+        record.append('error')
+
+    # Main deck shuffle
+
+    if auto_mode == False: 
+        print('Shuffling the deck.')
+        ace_selector = 0
+        bet = ''
     cards_drawn = 0
     dealer_bust = False
     dealer_cards_drawn = 0
@@ -381,22 +662,25 @@ def shuffle(): # Shuffle the deck, refresh the variables
     player_win = False
 
     # Add discard back to deck
+
     live_deck = live_deck + discard
     for entry in range(len(discard)):
         discard.pop()
 
-    for i in range(3):
-        time.sleep(0.7)
-        print('.')
-    
+    if auto_mode == False:
+        for i in range(3):
+            time.sleep(0.7)
+            print('.')
     
 def take_bets(): # Receive and process bet input from user
     global all_in_counter
+    global auto_mode
     global bet
     global player_chips
 
-    print('You have ${}.'.format(player_chips))
-    time.sleep(1.2)
+    if auto_mode == False:
+        print('You have ${}.'.format(player_chips))
+        time.sleep(1.2)
     bet_confirmation = False
     while bet_confirmation == False:
         bet = input('Place your bets: $')
@@ -417,6 +701,7 @@ def take_bets(): # Receive and process bet input from user
 
 def view_stats():
     global all_in_counter
+    global bust_counter
     global hands_drawn
     global hands_played
     global hands_won
@@ -425,7 +710,10 @@ def view_stats():
 
     # Calc Stats
     win_rate = int((hands_won/hands_played) * 100)
+    net_change_rate = round(net_change/hands_played, 2)
     avg_cards = round(total_cards_drawn/hands_played, 1)
+    tie_rate = int((hands_drawn/hands_played) * 100)
+    bust_rate = int((bust_counter/hands_played) * 100)
 
     # Ask to, then display stats 
     view_stats_confirmation = False
@@ -445,9 +733,9 @@ def view_stats():
                 print('You won {} hands out of {} games played, for a win rate of {}%.'.format(hands_won, hands_played, win_rate))
                 time.sleep(0.5)
                 if net_change > 0:
-                    print("You made ${} in net profit!".format(net_change))
+                    print("You made ${} in net profit! That's ${} per game.".format(net_change, net_change_rate))
                 elif net_change < 0:
-                    print("You lost a total of ${}.".format(net_change))
+                    print("You lost a total of -${}. That's -${} per game.".format(abs(net_change), abs(net_change_rate)))
                 else:
                     print('You broke even.')
             time.sleep(1)
@@ -463,16 +751,23 @@ def view_stats():
             # Other stats
 
             if hands_drawn == 1:
-                print('You had {} tie during your session.'.format(hands_drawn))
+                print('You had {} tie during your session for a tie rate of {}%.'.format(hands_drawn, tie_rate))
                 time.sleep(1)
             elif hands_drawn > 0:
-                print('You had {} ties during your session.'.format(hands_drawn))
+                print('You had {} ties during your session for a tie rate of {}%.'.format(hands_drawn, tie_rate))
                 time.sleep(1)
 
-            if all_in_counter == 1:
+            if bust_counter == 1:
+                print('You went bust {} time for a bust rate of {}%.'.format(bust_counter, bust_rate))
+                time.sleep(1)
+            elif bust_counter > 0:
+                print('You went bust {} times for a bust rate of {}%.'.format(bust_counter, bust_rate))
+                time.sleep(1)
+
+            if all_in_counter == 1 and auto_mode == False:
                 print('You went all in {} time.'.format(all_in_counter))
                 time.sleep(1) 
-            elif all_in_counter > 0:
+            elif all_in_counter > 0 and auto_mode == False:
                 print('You went all in {} times.'.format(all_in_counter))
                 time.sleep(1) 
         
@@ -480,15 +775,9 @@ def view_stats():
         elif open_stats == str.casefold('No') or open_stats == str.casefold('N'):
             break
         else:
-            print('Invalid update. Please input yes or no.')
-    
-    print('Thanks for playing. Goodbye!')
+            print('Invalid input. Please input yes or no.')
 
 # Game sequence
+
 intro()
-while play_again == True:
-    shuffle()
-    take_bets()
-    core_game_loop()
-    keep_playing()
-view_stats()
+mode_selection()
