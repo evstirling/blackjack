@@ -3,7 +3,7 @@ import time
 
 # Version Number
 
-version = '1.3.3'
+version = '1.3.4'
 
 # Cardset
 
@@ -363,9 +363,9 @@ def core_game_loop(): # Main sequence of game functions
 
     # Game number
 
-    print('===============')
-    print('   Game #{}:'.format(hands_played))
-    print('===============')
+    print('  +=============+')
+    print(' /  Game #{}:  /'.format(hands_played))
+    print('+=============+')
 
     # Opening Hand
 
@@ -378,6 +378,8 @@ def core_game_loop(): # Main sequence of game functions
     # If player busts, game ends. If player has drawn 5 cards, they win
 
     if player_bust == False and cards_drawn < 5:
+        dealer_turn()
+    elif player_bust == True and split_bust == False and split_turn == True:
         dealer_turn()
 
     compare_scores()
@@ -510,20 +512,27 @@ def hit():  # Hit me babey
 def intro(): # Introductory text
     global version
 
-    print('Welcome to Blackjack.py v{}.'.format(version))
-    time.sleep(1)
-    print('Thanks for checking it out!')
-    time.sleep(1)
+    title_text = """  
+        __   __         __     _          __              
+       / /  / /__ _____/ /__  (_)__ _____/ /__  ___  __ __
+      / _ \/ / _ `/ __/  '_/ / / _ `/ __/  '_/ / _ \/ // /
+     /_.__/_/\_,_/\__/_/\_\_/ /\_,_/\__/_/\_(_) .__/\_, / 
+                         |___/               /_/   /___/  
+                                                  v{}
+""".format(version)
+    print(title_text)
+    time.sleep(1.5)
     intro_text = """
-    +===================+
-    |   House Rules :   |               
+     +===================+
+    /   House Rules :   /               
     +=====================================================+
     |   Win back what you bet, bets returned in a draw.   | 
     |       Dealer sticks on 17 and evaluates Aces.       |
     |   5 card draw wins. Double down on first turn only. |    
     +=====================================================+
-                                        |  Buy in : $100  |
-                                        +=================+
+                                        /  Buy in : $100  /
+                                       +=================+
+
     """
     print(intro_text)   
     time.sleep(1)
@@ -588,9 +597,9 @@ def mode_auto():
     while continue_sim == True:
         auto_test_counter += 1
         time.sleep(0.5)
-        print('===============')
-        print('   Test #{}:'.format(auto_test_counter))
-        print('===============')
+        print('  +=============+')
+        print(' /  Test #{}:  /'.format(auto_test_counter))
+        print('+=============+')
         auto_params()
         while hands_played < auto_hands:
             shuffle()
@@ -735,8 +744,8 @@ def player_turn(): # Player's turn sequence
         # Check 21 points
 
         if player_score == 21:
-            time.sleep(1)
             print('You have 21 points!')
+            time.sleep(1)
             break
 
         # Hit, stick, double down, split?
@@ -750,15 +759,15 @@ def player_turn(): # Player's turn sequence
 
         # Player options
 
-        if player_score < 21 and hit_or_stick == str.casefold('Hit'):
+        if player_score < 21 and hit_or_stick == str.casefold('Hit') or hit_or_stick == str.casefold('h'):
             print('Hit.')
             time.sleep(1)
             hit()
-        elif player_score <= 21 and hit_or_stick == str.casefold('Stick'):
+        elif player_score <= 21 and hit_or_stick == str.casefold('Stick') or hit_or_stick == str.casefold('s'):
             print('Stuck. You have {} points.'.format(player_score))
             time.sleep(1)
             break
-        elif player_score <= 21 and hit_or_stick == str.casefold('double down') and cards_drawn == 2 and player_chips >= int(bet) * 2:
+        elif player_score <= 21 and (hit_or_stick == str.casefold('double down') or hit_or_stick == str.casefold('dd')) and cards_drawn == 2 and player_chips >= int(bet) * 2:
             bet = int(bet) * 2
             double_down = True
             print('Bet increased to ${}.'.format(bet))
