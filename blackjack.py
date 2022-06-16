@@ -3,7 +3,7 @@ import time
 
 # Version Number
 
-version = '1.3.2'
+version = '1.3.3'
 
 # Cardset
 
@@ -59,6 +59,7 @@ record = []
 session_record = []
 split_bet = 0
 split_cards_drawn = 0
+split_counter = 0
 split_draw = False
 split_first_card = []
 split_hand_score = 0
@@ -845,6 +846,7 @@ def split():
     global split_bet
     global split_bust
     global split_cards_drawn
+    global split_counter
     global split_first_card
     global split_hand_score
     global split_second_card
@@ -861,6 +863,7 @@ def split():
     cards_drawn -= 1
     split_cards_drawn += 1
     split_bet += bet
+    split_counter += 1
 
     # Split turn
 
@@ -984,6 +987,7 @@ def view_stats():
     global net_change
     global record
     global session_record
+    global split_counter
     global total_cards_drawn
 
     # Calc Stats
@@ -1057,6 +1061,11 @@ def view_stats():
             elif all_in_counter > 0 and auto_mode == False:
                 print('You went all in {} times.'.format(all_in_counter))
                 time.sleep(1) 
+            
+            if split_counter == 1:
+                print('You split {} hand.'.format(split_counter))
+            elif split_counter > 0:
+                print('You split {} hands.'.format(split_counter))
         
             break
         elif open_stats == str.casefold('No') or open_stats == str.casefold('N'):
