@@ -119,8 +119,6 @@ class Player:
 
     def compare_scores(self):
         if auto_mode == False: time.sleep(1)
-        if auto_mode == True: 
-            self.score = auto.score
 
         # 5 card draw
 
