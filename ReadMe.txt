@@ -1,9 +1,9 @@
-#########################
-[   B L A C K J A C K   ]
-#########################
-|   by Evan Stirling    |
-|  Updated: June 14/22  |
-#########################
+                                    #########################
+                                    [   B L A C K J A C K   ]
+                                    #########################
+                                    |   by Evan Stirling    |
+                                    |  Updated: June 25/22  |
+                                    #########################
 
 ## Repository Description:
 
@@ -19,3 +19,10 @@ blackjack.py:
     Modes:
         Standard - A standard game of Blackjack. Get as close to 21 points as possible and try to beat the dealer.
         Auto - Simulate large volumes of games and view statistics on wins/draws/busts etc.
+
+    Future features:
+        Auto mode alogrithms
+        Import custom algorithms as .json
+        Export stats as .csv
+        Multiplayer mode
+        Data visulaization
