@@ -41,8 +41,8 @@ session_card_record = []
 
 class Player:
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self):
+        self.ace_selector = 0
         self.bust = False
         self.cards_drawn = 0
         self.double_down = False
@@ -51,12 +51,20 @@ class Player:
         self.hit_or_stick = 'Hit'
         self.second_card = []
         self.score = 0
-        self.stick = 0
         self.turn = False
         self.win = False
-        if self.name == 'player' or self.name == 'split':
-            self.ace_selector = 0
-            self.bet = ''
+        self.bet = ''
+        self.stick = 0
+        self.all_in_counter = 0
+        self.bust_counter = 0
+        self.chips = 100
+        self.counter = 0
+        self.hands_drawn = 0
+        self.hands_played = 0
+        self.hands_to_play = 0
+        self.hands_won = 0
+        self.net_change = 0
+        self.total_cards_drawn = 0
 
     def auto_params(self): # Auto mode parameter settings
         global auto_deck
@@ -195,75 +203,78 @@ class Player:
             if self == player:
                 if player.cards_drawn == 2 and split.score == 0:
                     dealer.hit()
-            self.turn = True
-            while self.turn == True:
+                self.turn = True
+                while self.turn == True:
 
                 # Check bust
 
-                if self.score > 21 and split.first_card != split.second_card:
-                    time.sleep(1)
-                    self.bust = True
-                    self.bust_counter += 1
-                    break
+                    if self.score > 21 and split.first_card != split.second_card:
+                        time.sleep(1)
+                        self.bust = True
+                        self.bust_counter += 1
+                        break
 
-                # Check double down
+                    # Check double down
 
-                if self.double_down == True:
-                    break
+                    if self.double_down == True:
+                        break
 
-                # Check 5 cards
+                    # Check 5 cards
 
-                if self.cards_drawn == 5:
-                    break
+                    if self.cards_drawn == 5:
+                        break
 
-                # Check 21 points
+                    # Check 21 points
 
-                if self.score == 21:
-                    print('You have 21 points!')
-                    time.sleep(1)
-                    break
+                    if self.score == 21:
+                        print('You have 21 points!')
+                        time.sleep(1)
+                        break
 
-                # Hit, stick, double down, split?
+                    # Hit, stick, double down, split?
 
-                if player.cards_drawn == 2 and player.chips >= int(player.bet) * 2 and split.first_card[0] == split.second_card[0] and split.turn == False:
-                    player.hit_or_stick = input('Hit, stick, double down, or split? ')
-                elif player.cards_drawn == 2 and player.chips >= int(player.bet) * 2 and split.turn == False:
-                    player.hit_or_stick = input('Hit, stick, or double down? ')
-                else:
-                    self.hit_or_stick = input('Hit or stick? ') 
+                    if player.cards_drawn == 2 and player.chips >= int(player.bet) * 2 and split.first_card[0] == split.second_card[0] and split.turn == False:
+                        player.hit_or_stick = input('Hit, stick, double down, or split? ')
+                    elif player.cards_drawn == 2 and player.chips >= int(player.bet) * 2 and split.turn == False:
+                        player.hit_or_stick = input('Hit, stick, or double down? ')
+                    else:
+                        self.hit_or_stick = input('Hit or stick? ') 
 
-                # Player and split options
+                    # Player and split options
 
-                if self.score < 21 and self.hit_or_stick == str.casefold('Hit') or self.hit_or_stick == str.casefold('h'):
-                    print('Hit.')
-                    time.sleep(1)
-                    self.hit()
-                elif self.score <= 21 and self.hit_or_stick == str.casefold('Stick') or self.hit_or_stick == str.casefold('s'):
-                    print('Stuck. You have {} points.'.format(self.score))
-                    time.sleep(1)
-                    break
+                    if self.score < 21 and self.hit_or_stick == str.casefold('Hit') or self.hit_or_stick == str.casefold('h'):
+                        print('Hit.')
+                        time.sleep(1)
+                        self.hit()
+                    elif self.score <= 21 and self.hit_or_stick == str.casefold('Stick') or self.hit_or_stick == str.casefold('s'):
+                        print('Stuck. You have {} points.'.format(self.score))
+                        time.sleep(1)
+                        break
 
-                # Player exclusive options
+                    # Player exclusive options
 
-                elif player.score <= 21 and (player.hit_or_stick == str.casefold('double down') or player.hit_or_stick == str.casefold('dd')) and player.cards_drawn == 2 and player.chips >= player.bet * 2:
-                    player.bet = int(player.bet) * 2
-                    player.double_down = True
-                    print('Bet increased to ${}.'.format(player.bet))
-                    time.sleep(1)
-                    player.hit()
-                elif player.score <= 21 and player.hit_or_stick == str.casefold('split') and player.cards_drawn == 2 and player.chips >= int(player.bet) * 2 and split.first_card[0] == split.second_card[0]:
-                    print('Splitting hand.')
-                    time.sleep(1)
-                    print('')
-                    print('Hand 1:')
-                    split_hand()
-                else:
-                    print("Invalid input. Please enter a valid option.")
-            
+                    elif player.score <= 21 and (player.hit_or_stick == str.casefold('double down') or player.hit_or_stick == str.casefold('dd')) and player.cards_drawn == 2 and player.chips >= player.bet * 2:
+                        player.bet = int(player.bet) * 2
+                        player.double_down = True
+                        print('Bet increased to ${}.'.format(player.bet))
+                        time.sleep(1)
+                        player.hit()
+                    elif player.score <= 21 and player.hit_or_stick == str.casefold('split') and player.cards_drawn == 2 and player.chips >= int(player.bet) * 2 and split.first_card[0] == split.second_card[0]:
+                        print('Splitting hand.')
+                        time.sleep(1)
+                        print('')
+                        print('Hand 1:')
+                        split_hand()
+                    else:
+                        print("Invalid input. Please enter a valid option.")
+                
         # Automated turn
 
         elif self == auto or self == dealer:
             dealer.stick = 17
+
+            # Dealer's print
+
             if self == dealer and auto_mode == False:
                 print('')
                 time.sleep(1)
@@ -280,6 +291,7 @@ class Player:
                 if auto_mode == False: time.sleep(1)
                 if self.score > 21:
                     self.bust = True
+                    self.bust_counter += 1
                     if auto_mode == False: print('Dealer has gone bust.')
                     break
                 elif self.score >= self.stick:
@@ -288,8 +300,7 @@ class Player:
                 elif self.score < self.stick:
                     self.hit()
 
-        if self == auto: 
-            auto.hands_played += 1
+        self.hands_played += 1
 
     def hit(self):
 
@@ -298,8 +309,13 @@ class Player:
         draw_card()
         self.cards_drawn += 1
         self.total_cards_drawn += 1
-        if auto_mode == True:
-            auto.total_cards_drawn += 1
+
+        # Assign cards
+
+        if self.cards_drawn == 1:
+            self.first_card = drawn_card
+        elif self.cards_drawn == 2:
+            self.second_card = drawn_card
         
         if self == player or self == split and auto_mode == False:
             print('You received the {} of {}.'.format(drawn_card[0], drawn_card[1]))
@@ -307,7 +323,6 @@ class Player:
         elif self == dealer and auto_mode == False:
             if self.cards_drawn >= 1:
                 print('The dealer received the {} of {}.'.format(drawn_card[0], drawn_card[1]))
-                dealer.first_card = drawn_card
                 time.sleep(1)
 
         # Show dealer's face up card
@@ -353,6 +368,21 @@ class Player:
         if self == dealer and auto_mode == False and self.cards_drawn > 1:
             print('The dealer has {} cards, worth {} points.'.format(self.cards_drawn, self.score))
 
+    def refresh(self):
+        self.bust = False
+        self.cards_drawn = 0
+        self.double_down = False
+        self.draw = False
+        self.first_card = []
+        self.hit_or_stick = 'Hit'
+        self.second_card = []
+        self.score = 0
+        self.turn = False
+        self.win = False
+        if self == player or self == split:
+            self.ace_selector = 0
+            self.bet = ''
+            
     def pay_out(self): 
         if self.win == True:
             if self != auto: print('Your chip stack has increased by ${}!'.format(self.bet))
@@ -433,7 +463,7 @@ class Player:
                     print("You've drawn a total of {} cards, for an average of {} cards per game.".format(self.total_cards_drawn, avg_cards))
                 time.sleep(1)
 
-                # Other stats
+                # Hands drawn
 
                 if self.hands_drawn == 1:
                     print('You had {} tie during your session for a tie rate of {}%.'.format(self.hands_drawn, tie_rate))
@@ -442,6 +472,8 @@ class Player:
                     print('You had {} ties during your session for a tie rate of {}%.'.format(self.hands_drawn, tie_rate))
                     time.sleep(1)
 
+                # Bust count
+
                 if self.bust_counter == 1:
                     print('You went bust {} time for a bust rate of {}%.'.format(self.bust_counter, bust_rate))
                     time.sleep(1)
@@ -449,12 +481,16 @@ class Player:
                     print('You went bust {} times for a bust rate of {}%.'.format(self.bust_counter, bust_rate))
                     time.sleep(1)
 
+                # All in counter
+
                 if self.all_in_counter == 1 and auto_mode == False:
                     print('You went all in {} time.'.format(self.all_in_counter))
                     time.sleep(1) 
                 elif self.all_in_counter > 0 and auto_mode == False:
                     print('You went all in {} times.'.format(self.all_in_counter))
                     time.sleep(1) 
+
+                # Split counter
                 
                 if split.counter == 1:
                     print('You split {} hand.'.format(split.counter))
@@ -467,28 +503,12 @@ class Player:
             else:
                 print('Invalid input. Please input yes or no.')
 
-    # Class Variables
-
-    all_in_counter = 0
-    ace_selector = 0
-    bet = 0
-    bust_counter = 0
-    chips = 100
-    counter = 0
-    hands_drawn = 0
-    hands_played = 0
-    hands_to_play = 0
-    hands_won = 0
-    net_change = 0
-    total_cards_drawn = 0
-
-auto = Player('auto')
-dealer = Player('dealer')
-player = Player('player')
-split = Player('split')
+player = Player()
+split = Player()
+auto = Player()
+dealer = Player()
 
 # Functions
-
 
 def core_game_loop(): # Main sequence of standard game function
 
@@ -619,7 +639,11 @@ def mode_auto(): # Auto mode complete game loop
         auto.auto_params()
         while auto.hands_played < auto.hands_to_play:
             shuffle()
-            auto.hand() 
+            auto.hit()
+            dealer.hit()
+            auto.hit()
+            auto.hand()
+            dealer.hit() 
             dealer.hand()
             auto.compare_scores()
             if auto.hands_to_play <= 100: time.sleep(0.02)
@@ -686,11 +710,10 @@ def shuffle(): # Shuffle the deck, refresh the variables
     global live_deck
     
     # Main deck shuffle
-    if final_shuffle == False: player.hands_played += 1
-    player.__init__(player)
-    dealer.__init__(dealer)
-    split.__init__(split)
-    auto.__init__(auto)
+    player.refresh()
+    dealer.refresh()
+    split.refresh()
+    auto.refresh()
     live_deck = []
     if auto_mode == False and final_shuffle == False : 
         print('Shuffling the deck.')
