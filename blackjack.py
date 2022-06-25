@@ -3,7 +3,7 @@ import time
 
 # Version Number
 
-version = '1.4.0'
+version = '1.4.2'
 
 # Cardset
 
@@ -125,7 +125,7 @@ class Player:
 
         record_auto_params = [auto.stick, auto.hands_to_play, auto.ace_selector, auto.bet]
 
-    def compare_scores(self):
+    def compare_scores(self): # Score comparison and winner determination
         if auto_mode == False: time.sleep(1)
 
         # 5 card draw
@@ -192,7 +192,7 @@ class Player:
             print('')
         self.pay_out()
 
-    def hand(self):
+    def hand(self): # Individual turn sequences
          
         # Human controlled turn
 
@@ -302,7 +302,7 @@ class Player:
 
         self.hands_played += 1
 
-    def hit(self):
+    def hit(self): # Draw card, ace determination, point tally
 
         # Draw Card
 
@@ -368,7 +368,7 @@ class Player:
         if self == dealer and auto_mode == False and self.cards_drawn > 1:
             print('The dealer has {} cards, worth {} points.'.format(self.cards_drawn, self.score))
 
-    def refresh(self):
+    def refresh(self): # Variables to be refreshed in shuffle()
         self.bust = False
         self.cards_drawn = 0
         self.double_down = False
@@ -383,7 +383,7 @@ class Player:
             self.ace_selector = 0
             self.bet = ''
             
-    def pay_out(self): 
+    def pay_out(self): # Pay out bets to winner
         if self.win == True:
             if self != auto: print('Your chip stack has increased by ${}!'.format(self.bet))
             self.chips += self.bet
@@ -503,6 +503,8 @@ class Player:
             else:
                 print('Invalid input. Please input yes or no.')
 
+# Assign classes
+ 
 player = Player()
 split = Player()
 auto = Player()
@@ -696,7 +698,7 @@ def mode_standard(): # Standard mode complete game loop
         keep_playing()
     player.view_stats()
 
-def populate_deck():
+def populate_deck(): # Refresh deck
     global live_deck
 
     for deck in range(0, int(auto_deck)):
