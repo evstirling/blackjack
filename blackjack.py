@@ -3,7 +3,7 @@ import time
 
 # Version Number
 
-version = '1.4.2'
+version = '1.4.3'
 
 # Cardset
 
@@ -200,8 +200,9 @@ class Player:
 
             # Show dealers first card
 
-            if self == player:
+            if self == player or self == split:
                 if player.cards_drawn == 2 and split.score == 0:
+                    time.sleep(1)
                     dealer.hit()
                 self.turn = True
                 while self.turn == True:
@@ -227,6 +228,7 @@ class Player:
                     # Check 21 points
 
                     if self.score == 21:
+                        time.sleep(1)
                         print('You have 21 points!')
                         time.sleep(1)
                         break
@@ -311,11 +313,12 @@ class Player:
         self.total_cards_drawn += 1
 
         # Assign cards
-
-        if self.cards_drawn == 1:
-            self.first_card = drawn_card
-        elif self.cards_drawn == 2:
-            self.second_card = drawn_card
+        
+        if self != split:
+            if self.cards_drawn == 1:
+                self.first_card = drawn_card
+            elif self.cards_drawn == 2:
+                self.second_card = drawn_card
         
         if self == player or self == split and auto_mode == False:
             print('You received the {} of {}.'.format(drawn_card[0], drawn_card[1]))
@@ -363,7 +366,7 @@ class Player:
 
         # Card draw tally
 
-        if self == player and self.cards_drawn > 1: 
+        if (self == player or self == split) and self.cards_drawn > 1: 
             print('You have {} cards, worth {} points.'.format(self.cards_drawn, self.score))
         if self == dealer and auto_mode == False and self.cards_drawn > 1:
             print('The dealer has {} cards, worth {} points.'.format(self.cards_drawn, self.score))
@@ -517,7 +520,7 @@ def core_game_loop(): # Main sequence of standard game function
     # Game number
 
     print('  +=============+')
-    print(' /  Game #{}:  /'.format(player.hands_played))
+    print(' /  Game #{}:  /'.format(player.hands_played + 1))
     print('+=============+')
 
     # Opening Hand
@@ -752,6 +755,9 @@ def split_hand(): # Split hand function, player's 'first' hand
     player.cards_drawn -= 1
     split.cards_drawn += 1
     split.bet += player.bet
+    split.first_card = player.first_card
+    player.first_card = player.second_card
+    player.second_card = []
     split.counter += 1
 
     # Split turn
