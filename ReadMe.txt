@@ -27,7 +27,7 @@ blackjack.py:
         Multiplayer mode
         Data visulaization
 
-algobuilder.py
+algobuilder.py:
     (WIP)
     Algorithim builder for auto mode in blackjack.py.
     Will export custom algorithims in .json format.
