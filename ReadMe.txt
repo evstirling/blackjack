@@ -2,7 +2,7 @@
                                     [   B L A C K J A C K   ]
                                     #########################
                                     |   by Evan Stirling    |
-                                    |  Updated: June 25/22  |
+                                    |  Updated: July 13/22  |
                                     #########################
 
 ## Repository Description:
