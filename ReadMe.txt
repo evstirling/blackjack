@@ -19,15 +19,14 @@ blackjack.py:
     Modes:
         Standard - A standard game of Blackjack. Get as close to 21 points as possible and try to beat the dealer.
         Auto - Simulate large volumes of games and view statistics on wins/draws/busts etc.
+             - Build custom algorithms using algobuilder.py to test new strategies.
 
     Future features:
-        Auto mode alogrithms
-        Import custom algorithms as .json
         Export stats as .csv
         Multiplayer mode
         Data visulaization
 
 algobuilder.py:
-    Algorithim builder for auto mode in blackjack.py.
-    Export custom algorithims in .json format.
+    Algorithm builder for auto mode in blackjack.py.
+    Export custom algorithms in .json format.
     Algos currently include hit/stick/double down values for each player point value and dealer's face up card value.
