@@ -28,6 +28,6 @@ blackjack.py:
         Data visulaization
 
 algobuilder.py:
-    (WIP)
     Algorithim builder for auto mode in blackjack.py.
-    Will export custom algorithims in .json format.
+    Export custom algorithims in .json format.
+    Algos currently include hit/stick/double down values for each player point value and dealer's face up card value.
