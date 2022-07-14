@@ -3,7 +3,7 @@ import json
 
 # Version number
 
-version = '1.0.1'
+version = '1.0.2'
 
 # Functions
 
@@ -63,10 +63,16 @@ def add_values(dictionary):
 
     key = 0
     while key < (len(keys)):
+
+        # Hit below / stick above
+
         if keys[key][0] <= hit_below:
             value = 'h'
         elif keys[key][0] >= stick_over:
             value = 's'
+
+        # Manual input
+
         else:
             while True:
                 value = input("You have {} points, the dealer has {}: ".format(keys[key][0], keys[key][1]))
@@ -80,6 +86,9 @@ def add_values(dictionary):
         converted_key = ''.join(str(keys[key]))
         new_dict.update({converted_key: value})
         key += 1
+    
+    # Complete confirmation
+
     print('All entires filled.')
     time.sleep(1)
 
@@ -97,9 +106,23 @@ def name_file():
     filename += '.json' 
     return(filename)
 
+def intro_text():
+    intro = """
+       _             _           _ _     _                       
+  __ _| | __ _  ___ | |__  _   _(_| | __| | ___ _ __ _ __  _   _ 
+ / _` | |/ _` |/ _ \| '_ \| | | | | |/ _` |/ _ | '__| '_ \| | | |
+| (_| | | (_| | (_) | |_) | |_| | | | (_| |  __| |_ | |_) | |_| |
+ \__,_|_|\__, |\___/|_.__/ \__,_|_|_|\__,_|\___|_(_)| .__/ \__, |
+         |___/    f o r  b l a c k j a c k . p y    |_|    |___/ 
+                                                           v{}
+=================================================================                                                           
+    """.format(version)
+
+    return(intro)
+
 # Main program
 
-print('algobuilder.py for blackjack.py, v{}.'.format(version))
+print(intro_text())
 params = build_dict()
 params = add_values(params)
 filename = name_file()
