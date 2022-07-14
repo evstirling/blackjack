@@ -1,9 +1,10 @@
 import random
 import time
+import json
 
 # Version Number
 
-version = '1.4.3'
+version = '1.5.0'
 
 # Cardset
 
@@ -25,12 +26,15 @@ cards = [
 
 # Variable inits
 
+algorithm = {}
 auto_deck = 1
 auto_mode = False
 auto_test_counter = 0
 card_record = []
 discard = []
+dd = False
 final_shuffle = False
+load_algo = False
 play_again = True
 record = []
 record_auto_params = []
@@ -67,20 +71,43 @@ class Player:
         self.total_cards_drawn = 0
 
     def auto_params(self): # Auto mode parameter settings
+        global algorithm
         global auto_deck
         global live_deck
+        global load_algo
         global record_auto_params
+        
+        # load algo or auto_stick otherwise
+
+        while True:
+            algo = input('Load an algorithm? [Yes/No] ')
+            if algo == str.casefold('y') or algo == str.casefold('yes'):
+                load_algo = True
+                while True:
+                    filename = input("Enter algorithm file name: ")
+                    try:
+                        with open(filename) as auto_algo:
+                            algorithm = json.load(auto_algo)
+                        break
+                    except FileNotFoundError: 
+                        print('File not found. Ensure file is located in present working directory.')
+                break      
+            elif algo == str.casefold('n') or algo == str.casefold('no'):
+                break
+            else:
+                print('Invalid input. Please enter yes or no.')
         
         # auto_stick
 
-        stick_value = False
-        while stick_value == False:
-            auto.stick = input('Enter stick value: ')
-            if auto.stick.isdigit() == True and int(auto.stick) > 0 and int(auto.stick) <= 21:
-                auto.stick = int(auto.stick)
-                break
-            else: 
-                print('Invalid input. Please input a whole number greater than zero but less than 21.')
+        if load_algo == False:
+            stick_value = False
+            while stick_value == False:
+                auto.stick = input('Enter stick value: ')
+                if auto.stick.isdigit() == True and int(auto.stick) > 0 and int(auto.stick) <= 21:
+                    auto.stick = int(auto.stick)
+                    break
+                else: 
+                    print('Invalid input. Please input a whole number greater than zero but less than 21.')
 
         # auto_hands
                 
@@ -289,18 +316,52 @@ class Player:
             # Check score, stick at 17, bust at 21
 
             self.turn = True
-            while self.turn == True:
-                if auto_mode == False: time.sleep(1)
-                if self.score > 21:
-                    self.bust = True
-                    self.bust_counter += 1
-                    if auto_mode == False: print('Dealer has gone bust.')
-                    break
-                elif self.score >= self.stick:
-                    if auto_mode == False: print('Dealer sticks.')
-                    break
-                elif self.score < self.stick:
-                    self.hit()
+            if load_algo == False or self == dealer:
+                while self.turn == True:
+                    if auto_mode == False: time.sleep(1)
+                    if self.score > 21:
+                        self.bust = True
+                        self.bust_counter += 1
+                        if auto_mode == False: print('Dealer has gone bust.')
+                        break
+                    elif self.score >= self.stick:
+                        if auto_mode == False: print('Dealer sticks.')
+                        break
+                    elif self.score < self.stick:
+                        self.hit()
+
+            # Using custom algorithm
+
+            elif load_algo == True and self == auto:
+                global dd
+                while True:
+
+                    # Check bust
+
+                    if self.score > 21:
+                        self.bust = True
+                        break
+
+                    # Reset bet after dd
+
+                    if dd == True:
+                        self.bet = self.bet/2
+                        dd = False
+                    
+                    # Check current score against algo 
+
+                    current_score = '({}, {})'.format(str(self.score), str(dealer.score))
+                    for pair in algorithm.keys():
+                        if current_score == pair:
+                            action = algorithm[pair]
+                    if action == 'h':
+                        self.hit()
+                    elif action == 's':
+                        break
+                    elif action == 'dd':
+                        self.bet += self.bet
+                        dd = True
+                        break
 
         self.hands_played += 1
 
@@ -630,6 +691,7 @@ def mode_auto(): # Auto mode complete game loop
     global auto_mode
     global auto_test_counter
     global live_deck
+    global load_algo
 
     # Auto mode selected
 
@@ -666,6 +728,7 @@ def mode_auto(): # Auto mode complete game loop
                 auto.net_change = 0
                 auto.chips = 100
                 auto.total_cards_drawn = 0
+                load_algo = False
         elif continue_game == str.casefold('No') or continue_game == str.casefold('N'):
                 continue_sim = False
                 print('Thanks for testing the sim! Goodbye!')
