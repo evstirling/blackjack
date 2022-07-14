@@ -4,7 +4,7 @@ import json
 
 # Version number
 
-version = '0.1.0'
+version = '1.0.0'
 
 # Functions
 
@@ -56,7 +56,7 @@ def add_values(dictionary):
 
     # Guide text
 
-    print("Enter desired action given player points and dealer's face up card.")
+    print("Enter action given player points and dealer's face up card.")
     print("| h = hit | s = stick | dd = double down | b = go back one stage |")
     time.sleep(1)
 
@@ -65,28 +65,44 @@ def add_values(dictionary):
     key = 0
     while key < (len(keys)):
         if keys[key][0] <= hit_below:
-            new_dict.update({keys[key]: "h"})
-            key += 1
+            value = 'h'
         elif keys[key][0] >= stick_over:
-            new_dict.update({keys[key]: "s"})
-            key += 1
+            value = 's'
         else:
             while True:
                 value = input("You have {} points, the dealer has {}: ".format(keys[key][0], keys[key][1]))
                 print('\033[1A' + '\033[K', end='')
                 if value == str.casefold('h') or value == str.casefold('s') or value == str.casefold('dd'):
-                    new_dict.update({keys[key]: value})
-                    key += 1
                     break
                 elif value == str.casefold('b'):
                     key -= 1
                 else:
                     print('Please enter a valid command. ', end='')
+        converted_key = ''.join(str(keys[key]))
+        new_dict.update({converted_key: value})
+        key += 1
 
     return(new_dict)
 
+def name_file():
+    while True:
+        filename = input("Enter desired algo name: ")
+        if len(filename) >= 64:
+            print("Entered name is too long. Max character length is 64")
+        else:
+            filename = filename.replace(" ", "_")
+            break
+
+    filename += '.json' 
+    return(filename)
+
+# Main program
+
+print('algobuilder.py for blackjack.py, v{}.'.format(version))
 params = build_dict()
 params = add_values(params)
+filename = name_file()
 
-print(params)
-
+with open(filename, 'w') as json_file:
+    json.dump(params, json_file)
+print('{} created in current directory.'.format(filename))
