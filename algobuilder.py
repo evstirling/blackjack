@@ -1,10 +1,9 @@
-from curses.ascii import isdigit
 import time
 import json
 
 # Version number
 
-version = '1.0.0'
+version = '1.0.1'
 
 # Functions
 
@@ -81,6 +80,8 @@ def add_values(dictionary):
         converted_key = ''.join(str(keys[key]))
         new_dict.update({converted_key: value})
         key += 1
+    print('All entires filled.')
+    time.sleep(1)
 
     return(new_dict)
 
