@@ -2,7 +2,7 @@
                                     [   B L A C K J A C K   ]
                                     #########################
                                     |   by Evan Stirling    |
-                                    |  Updated: July 13/22  |
+                                    |  Updated: Aug 1/22    |
                                     #########################
 
 ## Repository Description:
@@ -12,6 +12,8 @@
     Feel free to fork this repo and try the games out for yourself!
 
 ## File Descriptions:
+
+Python
 
 blackjack.py: 
     Command line game of blackjack. The first independent project I have created.
@@ -30,3 +32,9 @@ algobuilder.py:
     Algorithm builder for auto mode in blackjack.py.
     Export custom algorithms in .json format.
     Algos currently include hit/stick/double down values for each player point value and dealer's face up card value.
+
+Rust
+
+src/main.rs:
+    Command line game of blackjack, this time written in rust. 
+    Currently very early in develpoment, but is functional.
