@@ -1,6 +1,7 @@
 use rand::Rng;
 use std::io;
 use std::io::Write;
+use std::{thread, time::Duration};
 
 fn main() {
     let mut player = Player {
@@ -24,19 +25,33 @@ fn main() {
         drawn_cards: Vec::new(),
     };
     loop {
+        // Main game loop
         let mut deck = build_deck();
         player.turn(&mut deck, &mut dealer);
-        if player.bust == false || player.drawn_cards.len() < 5 {
-            dealer.dealer_turn(&mut deck);
+        // Dealer turn only happens if necessary
+        match player.bust {
+            true => (),
+            false => match player.drawn_cards.len() {
+                5 => (),
+                _ => dealer.dealer_turn(&mut deck),
+            },
         }
         player.compare_scores(&dealer);
         player.reset();
         dealer.reset();
+        let play_again: bool = continue_game(&mut player);
+        match play_again {
+            true => continue,
+            false => {
+                println!("Thanks for playing! Your end total is ${}!", player.chips);
+                break;
+            }
+        }
     }
 }
 // Player creation and functions
 struct Player {
-    id: u8,
+    id: u8, // 1 for human controlled player / 2 for dealer
     score: u8,
     bet: i32,
     chips: i32,
@@ -64,6 +79,7 @@ impl Player {
         } else {
             println!("Error calculating winner. Bets returned.")
         }
+        wait();
     }
     fn hit(&mut self, deck: &mut Vec<Card>) {
         // Draw card, save to cards_drawn
@@ -76,6 +92,7 @@ impl Player {
             1 => {
                 if self.drawn_cards.len() >= 1 {
                     println!("You drew the {} of {}.", drawn_card.name, drawn_card.suit);
+                    wait();
                 }
             }
             2 => match self.drawn_cards.len() {
@@ -84,16 +101,19 @@ impl Player {
                         "The dealer's face up card is the {} of {}.",
                         drawn_card.name, drawn_card.suit
                     );
+                    wait();
                 }
                 _ => {
                     println!(
                         "The dealer drew the {} of {}.",
                         drawn_card.name, drawn_card.suit
                     );
+                    wait();
                 }
             },
             _ => {
                 println!("An unexpected error occured :(");
+                wait();
             }
         }
 
@@ -117,7 +137,8 @@ impl Player {
                             break;
                         }
                         _ => {
-                            println!("Please enter either one or eleven.")
+                            println!("Please enter either one or eleven.");
+                            wait();
                         }
                     }
                 },
@@ -127,37 +148,42 @@ impl Player {
                 },
                 _ => {
                     println!("An unexpected error occured :(");
+                    wait();
                 }
             },
             PointValue::NotAce(_x) => self.score += drawn_card.point_value.unpack(),
         }
 
         // Print point total and cards drawn
-        match self.id {
-            1 => {
-                println!(
-                    "You have {} cards worth {} points.",
-                    self.drawn_cards.len(),
-                    self.score
-                )
-            }
-            2 => {
-                if self.drawn_cards.len() < 1 {
+        if self.drawn_cards.len() > 1 {
+            match self.id {
+                1 => {
+                    println!(
+                        "You have {} cards worth {} points.",
+                        self.drawn_cards.len(),
+                        self.score
+                    );
+                    wait();
+                }
+                2 => {
                     println!(
                         "The dealer has {} cards worth {} points.",
                         self.drawn_cards.len(),
                         self.score
-                    )
+                    );
+                    wait();
                 }
-            }
-            _ => {
-                println!("An unexpected error occured :(");
+                _ => {
+                    println!("An unexpected error occured :(");
+                    wait();
+                }
             }
         }
     }
 
     fn take_bets(&mut self) {
         println!("You have ${}.", self.chips);
+        wait();
         loop {
             let mut input = String::new();
             print!("Place your bets: $");
@@ -170,14 +196,17 @@ impl Player {
                 Ok(val_input) => {
                     if self.chips < val_input {
                         println!("Insufficient funds.");
+                        wait();
                     } else {
-                        println!("Bets placed!");
+                        println!("Bets placed! Good luck!");
+                        wait();
                         self.bet = val_input;
                         break;
                     }
                 }
                 Err(_e) => {
                     println!("Please enter a valid number.");
+                    wait();
                 }
             }
         }
@@ -194,18 +223,21 @@ impl Player {
             if self.score > 21 {
                 println!("You've gone bust.");
                 self.bust = true;
+                wait();
                 break;
             }
             // Check double down
             if self.double_down == true {
                 self.bet += self.bet;
                 println!("Bet increased to ${}", self.bet);
+                wait();
                 self.hit(deck);
                 break;
             }
             // Check 5 card draw
             if self.drawn_cards.len() >= 5 {
                 println!("You have five cards!");
+                wait();
                 break;
             }
             // Take action
@@ -223,17 +255,20 @@ impl Player {
                 "h" | "hit" => self.hit(deck),
                 "s" | "stick" => {
                     println!("Stuck.");
+                    wait();
                     break;
                 }
                 "dd" | "double down" => {
                     if self.drawn_cards.len() == 2 {
                         self.double_down = true;
                     } else {
-                        println!("You can only double down on your first turn of the game.")
+                        println!("You can only double down on your first turn of the game.");
+                        wait();
                     }
                 }
                 _ => {
-                    println!("Please enter a valid input.")
+                    println!("Please enter a valid input.");
+                    wait();
                 }
             }
         }
@@ -245,17 +280,20 @@ impl Player {
             // Check bust
             if self.score > 21 {
                 println!("The dealer has bust.");
+                wait();
                 self.bust = true;
                 break;
             }
             // Check 5 card draw
             if self.drawn_cards.len() >= 5 {
                 println!("The dealer has five cards.");
+                wait();
                 break;
             }
             // Hit or stick
             if self.score >= 17 {
                 println!("Dealer sticks.");
+                wait();
                 break;
             } else {
                 self.hit(deck);
@@ -295,6 +333,7 @@ struct Card {
 }
 fn build_deck() -> Vec<Card> {
     println!("Shuffling deck...");
+    wait();
     // S P A D E S
     let ace_spades = Card {
         name: String::from("Ace"),
@@ -623,4 +662,50 @@ fn draw_card(deck: &mut Vec<Card>) -> Card {
     let drawn_card = deck[draw_number].clone();
     deck.remove(draw_number);
     return drawn_card;
+}
+
+fn continue_game(player: &mut Player) -> bool {
+    match player.chips {
+        // Buy back in if out of chips
+        0 => loop {
+            let mut input = String::new();
+            print!("Buy back in? [Yes/No] ");
+            let _ = io::stdout().flush();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Error reading line, please try again.");
+            match input.to_lowercase().trim() {
+                "yes" | "y" => {
+                    player.chips += 100;
+                    return true;
+                }
+                "no" | "n" => return false,
+                _ => {
+                    println!("Invalid input, please try again.");
+                    wait();
+                }
+            }
+        },
+        // Standard continue loop
+        _ => loop {
+            let mut input = String::new();
+            print!("Play another hand? [Yes/No] ");
+            let _ = io::stdout().flush();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Error reading line, please try again.");
+            match input.to_lowercase().trim() {
+                "yes" | "y" => return true,
+                "no" | "n" => return false,
+                _ => {
+                    println!("Invalid input, please try again.");
+                    wait();
+                }
+            }
+        },
+    }
+}
+
+fn wait() {
+    thread::sleep(Duration::from_secs(1));
 }
