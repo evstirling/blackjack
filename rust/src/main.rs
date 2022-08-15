@@ -6,23 +6,11 @@ use std::{thread, time::Duration};
 fn main() {
     let mut player = Player {
         id: 1,
-        score: 0,
-        bet: 0,
-        chips: 100,
-        bust: false,
-        turn: false,
-        double_down: false,
-        drawn_cards: Vec::new(),
+        ..Default::default()
     };
     let mut dealer = Player {
         id: 2,
-        score: 0,
-        bet: 0,
-        chips: 0,
-        bust: false,
-        turn: false,
-        double_down: false,
-        drawn_cards: Vec::new(),
+        ..Default::default()
     };
     loop {
         // Main game loop
@@ -43,15 +31,39 @@ fn main() {
         match play_again {
             true => continue,
             false => {
-                println!("Thanks for playing! Your end total is ${}!", player.chips);
+                view_stats(&mut player);
                 break;
             }
         }
     }
 }
 // Player creation and functions
+struct Stats {
+    wins: u32,
+    draws: u32,
+    losses: u32,
+    games_played: u32,
+    cards_drawn: u32,
+    net_change: i64,
+    busts: u32,
+    double_down: u32,
+}
+impl Default for Stats {
+    fn default() -> Self {
+        Stats {
+            wins: 0,
+            draws: 0,
+            losses: 0,
+            games_played: 0,
+            cards_drawn: 0,
+            net_change: 0,
+            busts: 0,
+            double_down: 0,
+        }
+    }
+}
 struct Player {
-    id: u8, // 1 for human controlled player / 2 for dealer
+    id: u8, //  0 for default / 1 for human controlled player / 2 for dealer
     score: u8,
     bet: i32,
     chips: i32,
@@ -59,6 +71,22 @@ struct Player {
     turn: bool,
     double_down: bool,
     drawn_cards: Vec<Card>,
+    stats: Stats,
+}
+impl Default for Player {
+    fn default() -> Self {
+        Player {
+            id: 0,
+            score: 0,
+            bet: 0,
+            chips: 100,
+            bust: false,
+            turn: false,
+            double_down: false,
+            drawn_cards: Vec::new(),
+            stats: Default::default(),
+        }
+    }
 }
 impl Player {
     fn compare_scores(&mut self, dealer: &Player) {
@@ -67,91 +95,67 @@ impl Player {
             || self.drawn_cards.len() == 5
         {
             println!("Congrats, you win!");
+            self.stats.wins += 1;
             self.chips += self.bet;
+            self.stats.net_change += self.bet as i64;
         } else if self.score < dealer.score && dealer.bust == false
             || self.bust == true
             || dealer.drawn_cards.len() == 5
         {
             println!("You lose. Better luck next time.");
+            self.stats.losses += 1;
             self.chips -= self.bet;
+            self.stats.net_change -= self.bet as i64;
         } else if self.score == dealer.score && self.bust == false && dealer.bust == false {
             println!("Draw. Bets returned.");
+            self.stats.draws += 1;
         } else {
             println!("Error calculating winner. Bets returned.")
         }
         wait();
+        self.stats.games_played += 1;
     }
+
     fn hit(&mut self, deck: &mut Vec<Card>) {
         // Draw card, save to cards_drawn
         let drawn_card = draw_card(deck);
         let save_card = drawn_card.clone();
         self.drawn_cards.push(save_card);
+        self.stats.cards_drawn += 1;
 
-        // Print drawn card
         match self.id {
+            // Player's hit
             1 => {
                 if self.drawn_cards.len() >= 1 {
                     println!("You drew the {} of {}.", drawn_card.name, drawn_card.suit);
                     wait();
                 }
+                self.score += drawn_card.point_value.unpack(self);
             }
-            2 => match self.drawn_cards.len() {
-                1 => {
-                    println!(
-                        "The dealer's face up card is the {} of {}.",
-                        drawn_card.name, drawn_card.suit
-                    );
-                    wait();
+            // Dealer's hit
+            2 => {
+                match self.drawn_cards.len() {
+                    1 => {
+                        println!(
+                            "The dealer's face up card is the {} of {}.",
+                            drawn_card.name, drawn_card.suit
+                        );
+                        wait();
+                    }
+                    _ => {
+                        println!(
+                            "The dealer drew the {} of {}.",
+                            drawn_card.name, drawn_card.suit
+                        );
+                        wait();
+                    }
                 }
-                _ => {
-                    println!(
-                        "The dealer drew the {} of {}.",
-                        drawn_card.name, drawn_card.suit
-                    );
-                    wait();
-                }
-            },
+                self.score += drawn_card.point_value.unpack(self);
+            }
             _ => {
                 println!("An unexpected error occured :(");
                 wait();
             }
-        }
-
-        // Ace selection and point tally
-        match drawn_card.point_value {
-            PointValue::Ace(x, y) => match self.id {
-                1 => loop {
-                    let mut input = String::new();
-                    print!("Count this ace as one or eleven? ");
-                    let _ = io::stdout().flush();
-                    io::stdin()
-                        .read_line(&mut input)
-                        .expect("Line could not be read. Please try again.");
-                    match input.to_lowercase().trim() {
-                        "1" | "one" => {
-                            self.score += x;
-                            break;
-                        }
-                        "11" | "eleven" => {
-                            self.score += y;
-                            break;
-                        }
-                        _ => {
-                            println!("Please enter either one or eleven.");
-                            wait();
-                        }
-                    }
-                },
-                2 => match self.score {
-                    0..=10 => self.score += y,
-                    _ => self.score += x,
-                },
-                _ => {
-                    println!("An unexpected error occured :(");
-                    wait();
-                }
-            },
-            PointValue::NotAce(_x) => self.score += drawn_card.point_value.unpack(),
         }
 
         // Print point total and cards drawn
@@ -223,15 +227,12 @@ impl Player {
             if self.score > 21 {
                 println!("You've gone bust.");
                 self.bust = true;
+                self.stats.busts += 1;
                 wait();
                 break;
             }
             // Check double down
             if self.double_down == true {
-                self.bet += self.bet;
-                println!("Bet increased to ${}", self.bet);
-                wait();
-                self.hit(deck);
                 break;
             }
             // Check 5 card draw
@@ -261,6 +262,11 @@ impl Player {
                 "dd" | "double down" => {
                     if self.drawn_cards.len() == 2 {
                         self.double_down = true;
+                        self.bet += self.bet;
+                        println!("Bet increased to ${}", self.bet);
+                        self.stats.double_down += 1;
+                        wait();
+                        self.hit(deck);
                     } else {
                         println!("You can only double down on your first turn of the game.");
                         wait();
@@ -317,10 +323,37 @@ enum PointValue {
     NotAce(u8),
 }
 impl PointValue {
-    fn unpack(&self) -> u8 {
+    fn unpack(&self, player: &mut Player) -> u8 {
         match *self {
+            PointValue::Ace(one, eleven) => match player.id {
+                // Ace selection for player
+                1 => loop {
+                    let mut input = String::new();
+                    print!("Count this ace as 1 or 11? ");
+                    let _ = io::stdout().flush();
+                    io::stdin()
+                        .read_line(&mut input)
+                        .expect("Line could not be read. Please try again.");
+                    match input.to_lowercase().trim() {
+                        "1" | "one" => return one,
+                        "11" | "eleven" => return eleven,
+                        _ => {
+                            println!("Please enter either one or eleven.");
+                            wait();
+                        }
+                    }
+                },
+                // Ace selection for dealer
+                2 => match player.score {
+                    0..=10 => return eleven,
+                    _ => return one,
+                },
+                _ => {
+                    println!("An error occured.");
+                    return 255;
+                }
+            },
             PointValue::NotAce(x) => x,
-            _ => 255,
         }
     }
 }
@@ -706,6 +739,101 @@ fn continue_game(player: &mut Player) -> bool {
     }
 }
 
+fn view_stats(player: &mut Player) {
+    loop {
+        let mut input = String::new();
+        print!("View stats? [Yes/No] ");
+        let _ = io::stdout().flush();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Error reading line, please try again.");
+        match input.to_lowercase().trim() {
+            "yes" | "y" => {
+                // Calc averages
+                let win_rate =
+                    (player.stats.wins as f32 / player.stats.games_played as f32) * 100.0;
+                let draw_rate =
+                    (player.stats.draws as f32 / player.stats.games_played as f32) * 100.0;
+                let bust_rate =
+                    (player.stats.busts as f32 / player.stats.games_played as f32) * 100.0;
+                let net_change_rate =
+                    player.stats.net_change as f32 / player.stats.games_played as f32;
+
+                // Print stats
+                match player.stats.games_played {
+                    1 => {
+                        match player.stats.wins {
+                            1 => println!("You won the only game you played!"),
+                            _ => match player.stats.draws {
+                                1 => println!("You tied the only game you played."),
+                                _ => println!("You lost the only game you played."),
+                            },
+                        }
+                        wait();
+                    }
+                    _ => {
+                        // Wins
+                        match player.stats.wins {
+                            0 => println!("You lost every game you played."),
+                            1 => println!(
+                                "You won once out of {} games, for a win rate of {}%.",
+                                player.stats.games_played, win_rate
+                            ),
+                            _ => println!(
+                                "You won {} games, for a win rate of {}%.",
+                                player.stats.wins, win_rate
+                            ),
+                        }
+                        wait();
+                        // Draws
+                        match player.stats.draws {
+                            0 => println!("You had no tied games during this session"),
+                            1 => println!(
+                                "You tied once out of {} games, for a draw rate of {}%.",
+                                player.stats.games_played, draw_rate
+                            ),
+                            _ => println!(
+                                "You tied {} games, for a draw rate of {}%.",
+                                player.stats.draws, draw_rate
+                            ),
+                        }
+                        wait();
+                        // Net change
+                        println!(
+                            "Your net change was ${}, for a rate of ${} per game.",
+                            player.stats.net_change, net_change_rate
+                        );
+                        wait();
+                        // Busts
+                        match player.stats.busts {
+                            0 => println!("You did not go bust during this session, nice!"),
+                            1 => println!(
+                                "You went bust once out of {} games, for a rate of {}%.",
+                                player.stats.games_played, bust_rate
+                            ),
+                            _ => println!(
+                                "You went bust {} times, for a rate of {}%",
+                                player.stats.busts, bust_rate
+                            ),
+                        }
+                        wait();
+                        //
+                    }
+                }
+                println!("Thanks for playing!");
+                break;
+            }
+            "no" | "n" => {
+                break;
+            }
+            _ => {
+                println!("Invalid input, please try again.");
+                wait();
+            }
+        }
+        println!("Thanks for playing! Your end total is ${}!", player.chips);
+    }
+}
 fn wait() {
     thread::sleep(Duration::from_secs(1));
 }
