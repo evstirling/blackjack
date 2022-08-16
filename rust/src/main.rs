@@ -94,11 +94,23 @@ impl Default for Player {
 }
 impl Player {
     fn compare_scores(&mut self, dealer: &Player) {
+        // Print scores (if dealer has had a turn)
+        if self.bust == false && self.drawn_cards.len() < 5 && dealer.drawn_cards.len() < 5 {
+            header(String::from("Score Comparison"));
+            println!("You have {} points.", self.score);
+            wait();
+            match dealer.bust {
+                true => println!("The dealer has bust."),
+                false => println!("The dealer has {} points.", dealer.score),
+            }
+            wait();
+        }
+        // Who wins?
         if self.score > dealer.score && self.bust == false
             || dealer.bust == true
             || self.drawn_cards.len() == 5
         {
-            println!("Congrats, you win!");
+            println!("Congrats, you win ${}!", self.bet);
             self.stats.wins += 1;
             self.chips += self.bet;
             self.stats.net_change += self.bet as i64;
@@ -227,6 +239,10 @@ impl Player {
     }
 
     fn turn(&mut self, deck: &mut Vec<Card>, dealer: &mut Player) {
+        let mut game_count = String::from("Game #");
+        let game_counter = (self.stats.games_played + 1).to_string();
+        game_count += &game_counter;
+        header(String::from(game_count));
         self.turn = true;
         self.take_bets();
         self.hit(deck);
@@ -253,7 +269,7 @@ impl Player {
             }
             // Take action
             let mut input = String::new();
-            if self.drawn_cards.len() == 2 {
+            if self.drawn_cards.len() == 2 && self.bet <= self.chips / 2 {
                 print!("Hit, stick, or double down? ");
             } else {
                 print!("Hit or stick? ")
@@ -273,7 +289,7 @@ impl Player {
                     if self.drawn_cards.len() == 2 {
                         self.double_down = true;
                         self.bet += self.bet;
-                        println!("Bet increased to ${}", self.bet);
+                        println!("Bet increased to ${}.", self.bet);
                         self.stats.double_down += 1;
                         wait();
                         self.hit(deck);
@@ -291,6 +307,7 @@ impl Player {
         self.turn = false;
     }
     fn dealer_turn(&mut self, deck: &mut Vec<Card>) {
+        header(String::from("Dealer's turn."));
         self.turn = true;
         loop {
             // Check bust
@@ -748,7 +765,17 @@ fn continue_game(player: &mut Player) -> bool {
         },
     }
 }
-
+fn header(heading: String) {
+    let mut divider = String::new();
+    for _n in 1..=(heading.len() + 8) {
+        divider += "=";
+    }
+    println!("");
+    println!("{}", divider);
+    println!("||  {}  ||", heading);
+    println!("{}", divider);
+    wait();
+}
 fn view_stats(player: &mut Player) {
     loop {
         let mut input = String::new();
@@ -759,6 +786,7 @@ fn view_stats(player: &mut Player) {
             .expect("Error reading line, please try again.");
         match input.to_lowercase().trim() {
             "yes" | "y" => {
+                header(String::from("Session Stats"));
                 // Calc averages
                 let win_rate =
                     (player.stats.wins as f32 / player.stats.games_played as f32) * 100.0;
@@ -786,65 +814,84 @@ fn view_stats(player: &mut Player) {
                         match player.stats.wins {
                             0 => println!("You lost every game you played."),
                             1 => println!(
-                                "You won once out of {} games, for a win rate of {}%.",
+                                "You won once out of {} games, for a win rate of {:.2}%.",
                                 player.stats.games_played, win_rate
                             ),
                             _ => println!(
-                                "You won {} games, for a win rate of {}%.",
+                                "You won {} games, for a win rate of {:.2}%.",
                                 player.stats.wins, win_rate
                             ),
                         }
                         wait();
                         // Draws
                         match player.stats.draws {
-                            0 => println!("You had no tied games during this session"),
-                            1 => println!(
-                                "You tied once out of {} games, for a draw rate of {}%.",
-                                player.stats.games_played, draw_rate
-                            ),
-                            _ => println!(
-                                "You tied {} games, for a draw rate of {}%.",
-                                player.stats.draws, draw_rate
-                            ),
+                            0 => (),
+                            1 => {
+                                println!(
+                                    "You tied once out of {} games, for a draw rate of {:.2}%.",
+                                    player.stats.games_played, draw_rate
+                                );
+                                wait()
+                            }
+                            _ => {
+                                println!(
+                                    "You tied {} games, for a draw rate of {:.2}%.",
+                                    player.stats.draws, draw_rate
+                                );
+                                wait()
+                            }
                         }
-                        wait();
                         // Net change
                         println!(
-                            "Your net change was ${}, for a rate of ${} per game.",
+                            "Your net change was ${}, for a rate of ${:.2} per game.",
                             player.stats.net_change, net_change_rate
                         );
                         wait();
                         // Busts
                         match player.stats.busts {
                             0 => (),
-                            1 => println!(
-                                "You went bust once out of {} games, for a rate of {}%.",
-                                player.stats.games_played, bust_rate
-                            ),
-                            _ => println!(
-                                "You went bust {} times, for a rate of {}%",
-                                player.stats.busts, bust_rate
-                            ),
+                            1 => {
+                                println!(
+                                    "You went bust once out of {} games, for a rate of {:.2}%.",
+                                    player.stats.games_played, bust_rate
+                                );
+                                wait()
+                            }
+                            _ => {
+                                println!(
+                                    "You went bust {} times, for a rate of {:.2}%",
+                                    player.stats.busts, bust_rate
+                                );
+                                wait()
+                            }
                         }
-                        wait();
                         // Double Down
                         match player.stats.double_down {
                             0 => (),
-                            1 => println!("You doubled down once."),
-                            _ => println!("You doubled down {} times.", player.stats.double_down),
+                            1 => {
+                                println!("You doubled down once.");
+                                wait()
+                            }
+                            _ => {
+                                println!("You doubled down {} times.", player.stats.double_down);
+                                wait()
+                            }
                         }
-                        wait();
                         // All in
                         match player.stats.all_in {
                             0 => (),
-                            1 => println!("You went all in once."),
-                            _ => println!("You went all in {} times.", player.stats.all_in),
+                            1 => {
+                                println!("You went all in once.");
+                                wait()
+                            }
+                            _ => {
+                                println!("You went all in {} times.", player.stats.all_in);
+                                wait()
+                            }
                         }
-                        wait();
                         //
                     }
                 }
-                println!("Thanks for playing!");
                 break;
             }
             "no" | "n" => {
@@ -855,8 +902,8 @@ fn view_stats(player: &mut Player) {
                 wait();
             }
         }
-        println!("Thanks for playing! Your end total is ${}!", player.chips);
     }
+    println!("Thanks for playing! Your end total is ${}!", player.chips);
 }
 fn wait() {
     thread::sleep(Duration::from_secs(1));
