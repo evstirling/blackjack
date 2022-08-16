@@ -15,6 +15,7 @@ fn main() {
     };
 
     // Main game loop
+    intro();
     loop {
         let mut deck = build_deck();
         player.turn(&mut deck, &mut dealer);
@@ -764,6 +765,29 @@ fn continue_game(player: &mut Player) -> bool {
             }
         },
     }
+}
+fn intro() {
+    const VERSION: &str = env!("CARGO_PKG_VERSION");
+    println!(
+        r"
+___  _    ____ ____ _  _  _ ____ ____ _  _  ____ ____ 
+|__] |    |__| |    |_/   | |__| |    |_/   |__/ [__  
+|__] |___ |  | |___ | \_ _| |  | |___ | \_ .|  \ ___] 
+                                            v{}    
+    ",
+        VERSION
+    );
+    wait();
+    println!(
+        "    ==================================
+    |           House Rules          |
+    |       Dealer sticks on 17.     |
+    |       5 card rule applies.     |
+    |          Buy in - $100         |
+    ==================================
+    "
+    );
+    wait();
 }
 fn header(heading: String) {
     let mut divider = String::new();
