@@ -4,6 +4,7 @@ use std::io::Write;
 use std::{thread, time::Duration};
 
 fn main() {
+    // player / dealer inits
     let mut player = Player {
         id: 1,
         ..Default::default()
@@ -12,8 +13,9 @@ fn main() {
         id: 2,
         ..Default::default()
     };
+
+    // Main game loop
     loop {
-        // Main game loop
         let mut deck = build_deck();
         player.turn(&mut deck, &mut dealer);
         // Dealer turn only happens if necessary
@@ -47,6 +49,7 @@ struct Stats {
     net_change: i64,
     busts: u32,
     double_down: u32,
+    all_in: u32,
 }
 impl Default for Stats {
     fn default() -> Self {
@@ -59,6 +62,7 @@ impl Default for Stats {
             net_change: 0,
             busts: 0,
             double_down: 0,
+            all_in: 0,
         }
     }
 }
@@ -189,6 +193,7 @@ impl Player {
         println!("You have ${}.", self.chips);
         wait();
         loop {
+            // Take bet input
             let mut input = String::new();
             print!("Place your bets: $");
             let _ = io::stdout().flush();
@@ -196,6 +201,8 @@ impl Player {
                 .read_line(&mut input)
                 .expect("Please enter a valid number.");
             let val_input = input.trim().parse::<i32>();
+
+            // Print confirmation
             match val_input {
                 Ok(val_input) => {
                     if self.chips < val_input {
@@ -203,8 +210,11 @@ impl Player {
                         wait();
                     } else {
                         println!("Bets placed! Good luck!");
-                        wait();
                         self.bet = val_input;
+                        if self.bet == self.chips {
+                            self.stats.all_in += 1
+                        };
+                        wait();
                         break;
                     }
                 }
@@ -806,7 +816,7 @@ fn view_stats(player: &mut Player) {
                         wait();
                         // Busts
                         match player.stats.busts {
-                            0 => println!("You did not go bust during this session, nice!"),
+                            0 => (),
                             1 => println!(
                                 "You went bust once out of {} games, for a rate of {}%.",
                                 player.stats.games_played, bust_rate
@@ -815,6 +825,20 @@ fn view_stats(player: &mut Player) {
                                 "You went bust {} times, for a rate of {}%",
                                 player.stats.busts, bust_rate
                             ),
+                        }
+                        wait();
+                        // Double Down
+                        match player.stats.double_down {
+                            0 => (),
+                            1 => println!("You doubled down once."),
+                            _ => println!("You doubled down {} times.", player.stats.double_down),
+                        }
+                        wait();
+                        // All in
+                        match player.stats.all_in {
+                            0 => (),
+                            1 => println!("You went all in once."),
+                            _ => println!("You went all in {} times.", player.stats.all_in),
                         }
                         wait();
                         //
