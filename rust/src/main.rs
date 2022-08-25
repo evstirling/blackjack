@@ -97,7 +97,7 @@ impl Player {
     fn compare_scores(&mut self, dealer: &Player) {
         // Print scores (if dealer has had a turn)
         if self.bust == false && self.drawn_cards.len() < 5 && dealer.drawn_cards.len() < 5 {
-            header(String::from("Score Comparison"));
+            header(String::from("Results:"));
             println!("You have {} points.", self.score);
             wait();
             match dealer.bust {
@@ -355,22 +355,28 @@ impl PointValue {
         match *self {
             PointValue::Ace(one, eleven) => match player.id {
                 // Ace selection for player
-                1 => loop {
-                    let mut input = String::new();
-                    print!("Count this ace as 1 or 11? ");
-                    let _ = io::stdout().flush();
-                    io::stdin()
-                        .read_line(&mut input)
-                        .expect("Line could not be read. Please try again.");
-                    match input.to_lowercase().trim() {
-                        "1" | "one" => return one,
-                        "11" | "eleven" => return eleven,
-                        _ => {
-                            println!("Please enter either one or eleven.");
-                            wait();
+                1 => {
+                    if player.score <= 10 {
+                        loop {
+                            let mut input = String::new();
+                            print!("Count this ace as 1 or 11? ");
+                            let _ = io::stdout().flush();
+                            io::stdin()
+                                .read_line(&mut input)
+                                .expect("Line could not be read. Please try again.");
+                            match input.to_lowercase().trim() {
+                                "1" | "one" => return one,
+                                "11" | "eleven" => return eleven,
+                                _ => {
+                                    println!("Please enter either one or eleven.");
+                                    wait();
+                                }
+                            }
                         }
+                    } else {
+                        return one;
                     }
-                },
+                }
                 // Ace selection for dealer
                 2 => match player.score {
                     0..=10 => return eleven,
