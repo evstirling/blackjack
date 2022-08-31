@@ -1,6 +1,6 @@
 # Blackjack
 
-Last updated: Aug 14th, 2022
+Last updated: Aug 31th, 2022
 
 ## Repository Description:
 
@@ -15,7 +15,7 @@ Feel free to fork this repo and try the games out for yourself!
 ### ***Python***
 
 **blackjack.py:** 
-    Command line game of blackjack. The first independent project I have created.
+    Command line game of blackjack.
 
 *Modes:* 
 
@@ -39,4 +39,4 @@ Algos currently include hit/stick/double down values for each player point value
 
 **src**/*main.rs:*
     Command line game of blackjack, this time written in Rust. 
-    Currently very early in develpoment, but is functional.
+    Currently only includes standard mode, but future versions will include an auto mode as well.
