@@ -37,6 +37,9 @@ Algos currently include hit/stick/double down values for each player point value
 
 ### ***Rust***
 
+**blackjack.exe:**
+    Most recent build of the Rust version of blackjack. Further details below.
+
 **src**/*main.rs:*
     Command line game of blackjack, this time written in Rust. 
     Currently only includes standard mode, but future versions will include an auto mode as well.

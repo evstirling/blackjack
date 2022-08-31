@@ -824,7 +824,17 @@ pub fn view_stats(player: &mut Player) {
             }
         }
     }
-    println!("Thanks for playing! Your end total is ${}!", player.chips);
+    loop {
+        println!("Thanks for playing! Your end total is ${}!", player.chips);
+        wait();
+        let mut input = String::new();
+        print!("Press the ENTER key to close this window.");
+        let _ = io::stdout().flush();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Error reading line, please try again.");
+        break;
+    }
 }
 
 // Generic Functions
